@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Dark background -->
+  <rect x="0" y="0" width="128" height="128" rx="22" fill="#1a1a1a"/>
+  <!-- Equalizer bars: steep symmetric pyramid, center bar alone at the top -->
+  <!-- Heights: 10, 22, 38, 58, 78, 58, 38, 22, 10 — vertically centered, bottom at y=103 -->
+  <!-- Bar width: 8px, gap: 4px, total: 104px, starts at x=12 -->
+  <rect x="12"  y="93" width="8" height="10" rx="2" fill="#0CACD7"/>
+  <rect x="24"  y="81" width="8" height="22" rx="2" fill="#0CACD7"/>
+  <rect x="36"  y="65" width="8" height="38" rx="2" fill="#0CACD7"/>
+  <rect x="48"  y="45" width="8" height="58" rx="2" fill="#0CACD7"/>
+  <rect x="60"  y="25" width="8" height="78" rx="2" fill="#0CACD7"/>
+  <rect x="72"  y="45" width="8" height="58" rx="2" fill="#0CACD7"/>
+  <rect x="84"  y="65" width="8" height="38" rx="2" fill="#0CACD7"/>
+  <rect x="96"  y="81" width="8" height="22" rx="2" fill="#0CACD7"/>
+  <rect x="108" y="93" width="8" height="10" rx="2" fill="#0CACD7"/>
+</svg>

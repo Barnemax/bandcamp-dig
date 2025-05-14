@@ -1,0 +1,252 @@
+:root {
+  // Color variables
+  --color-primary: #007c9e;
+  --color-primary-hover: #005f73;
+  --color-bg: #242424;
+  --color-text: rgb(255 255 255 / 0.87);
+  --color-gray: #888;
+  --color-gray-dark: #4a4a4a;
+  --color-button-bg: #1a1a1a;
+  --color-white: #fff;
+
+  // Transition variables
+  --transition-fast: 0.25s;
+  --transition-medium: 0.3s;
+
+  // Typography
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  font-synthesis: none;
+  text-rendering: optimizelegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  flex-direction: column;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 2.2em;
+  line-height: 1.1;
+}
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+
+  .header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+
+    .logo {
+      width: 55px;
+      height: auto;
+      padding: 0;
+    }
+
+    h1 {
+      font-size: 22px;
+    }
+  }
+}
+
+.dev-links-container,
+.migrate-container {
+  ul {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+
+    .btn-like {
+      display: block;
+      margin: 0;
+      width: 100%;
+      text-align: center;
+    }
+  }
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+h2 {
+  text-align: left;
+  font-size : 1.25em;
+  font-weight: 500;
+}
+
+.migrate-container,
+.dev-links-container {
+  margin: 20px 0;
+
+  button,
+  a {
+    margin: 0 5px;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: var(--color-gray);
+}
+
+button,
+a.btn-like {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #4F4D4D;
+  color: var(--color-white);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+
+  &:focus,
+  &:focus-visible {
+    outline: 4px auto -webkit-focus-ring-color;
+  }
+}
+
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+// Toggle Switch Styles
+
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  margin: 12px 0;
+
+  input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    &:checked + .toggle-slider {
+      background-color: var(--color-primary);
+
+      &::before {
+        transform: translateX(calc(var(--width-slider) - var(--height-circle) - calc(var(--inner-space) * 1) ));
+      }
+    }
+  }
+
+  &:hover .toggle-slider {
+    opacity: .9;
+  }
+}
+
+.toggle-slider {
+  --height-slider : 16px;
+  --height-circle : 14px;
+  --width-slider : 32px;
+  --inner-space : calc(var(--height-slider) - var(--height-circle));
+
+  position: relative;
+  width: var(--width-slider);
+  height: var(--height-slider);
+  background-color: var(--color-gray-dark);
+  border-radius: var(--height-slider);
+  transition: background-color var(--transition-medium) ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: var(--height-circle);
+    height: var(--height-circle);
+    border-radius: 50%;
+    background-color: var(--color-white);
+    top: calc(var(--inner-space) / 2);
+    left: calc(var(--inner-space) / 2);
+    transition: transform var(--transition-medium) ease;
+  }
+}
+
+.toggle-label {
+  user-select: none;
+}
+
+// Light mode
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-bg: #fff;
+    --color-text: #213547;
+    --color-gray-dark: #d1d1d1;
+    --color-button-bg: #f9f9f9;
+  }
+
+  a:hover {
+    color: var(--color-primary-hover);
+  }
+}
+
+// ─── Firefox-specific ────────────────────────────────────────────────────────
+// Styles that apply only in Firefox. Add rules here as needed.
+// The import UI uses a paste textarea instead of a file picker on Firefox.
+
+.import-instruction {
+  font-size: 13px;
+  margin: 8px 0 4px;
+  text-align: left;
+}
+
+.import-paste-area {
+  width: 100%;
+  height: 80px;
+  padding: 6px;
+  font-size: 11px;
+  resize: vertical;
+  background-color: var(--color-button-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-gray-dark);
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.import-paste-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+
+  button {
+    flex: 1;
+  }
+}

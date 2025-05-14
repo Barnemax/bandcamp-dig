@@ -1,0 +1,883 @@
+html {
+  --bcd-primary: #00A1CA;
+  --bcd-grey-900: #222;
+  --bcd-grey-800: #505958;
+  --bcd-grey-700: #999;
+  --bcd-grey-600: #D7D7D7;
+  --bcd-grey-500: #ebebeb;
+  --bcd-grey: #F4F4F4;
+  --bcd-white: #fff;
+  --bcd-red: #e04343;
+  --bcd-surface-invert: var(--bcd-grey);
+  --bcd-text-color: inherit;
+
+  &.dark-mode {
+    --bcd-surface-invert: var(--bcd-grey-800);
+    --bcd-text-color: var(--bcd-white);
+  }
+}
+
+#playlist-interface {
+  margin-top: 24px;
+  border-radius: 8px;
+  font-family: inherit;
+  max-width: 420px;
+
+  .track-in-playlists-container {
+    margin-top: 12px;
+  }
+
+  .no-playlists-with-track {
+    color: var(--bcd-grey-700);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .bcd-playlist-selector {
+    margin-bottom: 15px !important;
+    margin-left: 0 !important;
+  }
+}
+
+ul.playlists-containing-track {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-flow: row wrap;
+  gap: 4px;
+
+  li {
+    border-radius: 19px;
+    border: 1px solid var(--bcd-grey-600);
+    background-color: var(--bcd-white);
+    color: var(--bcd-primary);
+    padding: 6px 16px;
+    margin: 0;
+  }
+}
+
+%bcd-btn {
+  border-radius: 6px;
+  border: 1px solid var(--bcd-grey-600);
+  background-color: var(--bcd-grey);
+  color: var(--bcd-primary);
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--bcd-grey-500);
+    border-color: var(--bcd-primary);
+  }
+}
+
+%bcd-btn-sm {
+  @extend %bcd-btn;
+
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+%bcd-thin-scrollbar {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bcd-grey-800) var(--bcd-grey-600);
+}
+
+.bcd-playlist-manager-trigger {
+  @extend %bcd-btn;
+
+  padding: 10px;
+  font-size: 14px;
+  display: flex;
+  width: 100%;
+  color: var(--bcd-primary) !important;
+}
+
+.all-playlists-list {
+  @extend %bcd-thin-scrollbar;
+
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background-color: var(--bcd-grey);
+  padding: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  border-radius: 4px;
+  border: 1px solid var(--bcd-grey-600);
+  z-index: 1000;
+
+  .playlist-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .playlist-select-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--bcd-grey-600);
+    border-radius: 4px;
+    padding: 8px;
+    cursor: pointer;
+    transition: background 0.15s, border 0.15s;
+    font-size: 12px;
+    color: var(--bcd-grey-800);
+
+    &.selected {
+      color: var(--bcd-primary);
+    }
+
+    &:hover {
+      background: var(--bcd-grey-500);
+    }
+  }
+
+  .playlist-select-label {
+    flex: 1;
+    text-align: left;
+  }
+
+  .playlist-select-icon {
+    font-size: 18px;
+    margin-left: 10px;
+    color: var(--bcd-primary);
+  }
+}
+
+.bcd-playlist-tags-wrapper {
+  display: inline-block;
+  margin-left: 4px;
+}
+
+.bcd-playlist-tag {
+  margin-left: 4px;
+  background: var(--bcd-grey);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: var(--bcd-grey-900);
+  display: inline-block;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: var(--bcd-grey-600);
+  }
+}
+
+.bcd-playlist-selector {
+  display: block;
+  position: relative;
+  margin-left: 8px;
+  margin-bottom: 30px !important;
+}
+
+.playlist-detail-view {
+  margin-top: 20px;
+  padding: 0;
+}
+
+.playlist-back-btn {
+  @extend %bcd-btn-sm;
+
+  gap: 4px;
+}
+
+.playlist-display-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  margin-inline: 10px;
+  margin-bottom: 12px;
+  position: sticky;
+  top: 49.5px; // height of Bandcamp's sticky tab bar
+  background-color: var(--bcd-surface-invert);
+  z-index: 10;
+
+  h4 {
+    margin: 0;
+  }
+
+  .update-playlist-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--bcd-grey-700);
+    line-height: 0;
+    transition: color 0.15s ease;
+
+    .bcd-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    &:hover {
+      color: var(--bcd-primary);
+    }
+  }
+
+  &-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+}
+
+.playlist-tracks-list {
+  .collection-grid {
+    li.collection-item-container {
+      min-height: auto;
+
+      &.initial-batch:nth-child(1n+41) {
+        display: inline-block;
+      }
+    }
+
+    .followeer-grid .followeer.initial-batch:nth-child(1n+41) {
+      display: inline-block;
+    }
+  }
+}
+
+#new-releases-container {
+  .collection-grid {
+    li.collection-item-container {
+      min-height: auto;
+    }
+  }
+}
+
+.bcd-type {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  bottom: 8px;
+  right: 8px;
+  background: var(--bcd-surface-invert);
+  color: var(--bcd-text-color);
+  padding: 2px 6px;
+  border-radius: 2px;
+  width: max-content;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+%bcd-icon-btn {
+  background: var(--bcd-white);
+  color: var(--bcd-red);
+  line-height: 0;
+  border: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+  box-shadow: 0 0 3px .5px rgb(0 0 0 / 0.25);
+
+  .bcd-icon {
+    width: 10px;
+    height: 10px;
+  }
+
+  &:hover {
+    background: var(--bcd-red);
+    color: var(--bcd-white);
+  }
+}
+
+.bcd-remove-from-playlist,
+.delete-playlist-btn {
+  @extend %bcd-icon-btn;
+
+  opacity: 0;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  aspect-ratio: 1 / 1;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.bcd-remove-from-playlist {
+  top: 16px;
+  right: 16px;
+}
+
+.bcd-item:hover .bcd-remove-from-playlist,
+.playlist-item:hover .delete-playlist-btn {
+  opacity: 1;
+}
+
+%bcd-btn-outline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: transparent;
+  font: inherit;
+  font-weight: bold;
+  font-size: 13px;
+  line-height: 1;
+  padding: 5px 10px;
+  border-radius: 6px;
+  margin-right: 0;
+}
+
+.bcd-add-to-release-watch,
+.bcd-label-watch-toggle {
+  @extend %bcd-btn-outline;
+}
+
+.bcd-label-watch-toggle {
+  margin-bottom: 10px;
+  color: var(--bcd-grey-700);
+}
+
+.bcd-release-watch-art {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: var(--bcd-white);
+  border: 0;
+  border-radius: 50%;
+  z-index: 5;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 3px .5px rgb(0 0 0 / 0.25);
+
+  &:hover {
+    background-color: var(--bcd-grey);
+  }
+}
+
+.bcd-release-date-change-warning {
+  white-space: normal;
+}
+
+.bcd-status {
+  background: url('/img/_sprite-bc-ui2-20180131@2x.png') no-repeat;
+  background-size: 100px 200px;
+  height: 13px;
+  width: 14px;
+
+  &.owned {
+    background-position: -42px -73px;
+  }
+
+  &.wishlisted {
+    background-position: -28px -73px;
+  }
+}
+
+#playlist-creation-form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.playlist-item-create {
+  cursor: default;
+
+  .playlist-create-visual {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bcd-grey-600);
+
+    .bcd-icon {
+      width: 28px;
+      height: 28px;
+      opacity: 0.45;
+    }
+  }
+
+  .playlist-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    input,
+    textarea {
+      width: 100%;
+      font-size: 12px;
+      border: 1px solid var(--bcd-grey-600);
+      border-radius: 2px;
+      padding: 4px 6px;
+      background: var(--bcd-white);
+      color: var(--bcd-grey-900);
+      box-sizing: border-box;
+    }
+
+    textarea {
+      resize: none;
+      height: 44px;
+    }
+
+    button[type='submit'] {
+      @extend %bcd-btn-sm;
+
+      align-self: flex-start;
+    }
+  }
+}
+
+.playlist-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  padding: 0;
+  margin: 0 10px;
+  color: var(--bcd-grey-900);
+
+  .playlist-item {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bcd-grey);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    margin: 0;
+    transition: box-shadow 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+    }
+
+    .playlist-info {
+      padding: 8px 12px 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .playlist-title {
+      margin: 0 0 4px;
+      font-size: 14px;
+    }
+
+    .track-count,
+    .last-updated {
+      display: block;
+      font-size: 12px;
+      color: var(--bcd-grey-700);
+    }
+
+    .playlist-images-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      aspect-ratio: 1;
+      width: 100%;
+      background-color: var(--bcd-grey-600);
+      position: relative;
+
+      img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        display: block;
+      }
+
+      .playlist-image-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        background: transparent;
+        transition: opacity 0.2s ease, background 0.2s ease;
+        pointer-events: none;
+
+        .bcd-icon {
+          width: 28px;
+          height: 28px;
+          color: var(--bcd-white);
+          filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.7));
+        }
+      }
+    }
+
+    &:hover .playlist-image-overlay {
+      opacity: 1;
+      background: rgb(0 0 0 / 0.4);
+    }
+  }
+}
+
+.bcd-watched-artists-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+
+  li {
+    padding: 6px 8px;
+    margin: 0;
+    font-size: 12px;
+    color: var(--bcd-grey-900);
+  }
+}
+
+.bcd-watched-artists-summary {
+  margin-inline: 10px;
+}
+
+// Onboarding — suggest artists from collection when none are watched
+
+.bcd-onboarding {
+  margin: 16px 10px;
+
+  &-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+
+  &-description {
+    font-size: 12px;
+    color: var(--bcd-grey-700);
+    margin: 0 0 12px;
+  }
+
+  &-loading {
+    font-size: 13px;
+    color: var(--bcd-grey-700);
+    padding: 8px 0;
+  }
+
+  &-list {
+    @extend %bcd-thin-scrollbar;
+
+    list-style: none;
+    padding: 40px;
+    margin: 0 0 12px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    max-height: 50vh;
+  }
+
+  &-item {
+    margin: 0;
+
+    label {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 6px;
+      cursor: pointer;
+      border-radius: 6px;
+      text-align: center;
+      outline: 2px solid transparent;
+
+      &:hover {
+        background: rgb(0 161 202 / 0.08);
+      }
+
+      &:has(input:checked) {
+        background: rgb(0 161 202 / 0.12);
+        outline-color: rgb(0 161 202 / 0.25);
+      }
+
+      input[type='checkbox'] {
+        opacity: 0;
+        pointer-events: none;
+        position: absolute;
+      }
+    }
+  }
+
+  &-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--bcd-grey-300, #ddd);
+    display: block;
+  }
+
+  &-name {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    width: 100%;
+  }
+
+  &-count {
+    font-size: 10px;
+    color: var(--bcd-grey-700);
+  }
+
+  &-actions {
+    display: flex;
+    gap: 8px;
+
+    button {
+      @extend %bcd-btn-sm;
+    }
+  }
+}
+
+// Progress Dialog
+
+.bcd-progress {
+  &-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgb(0 0 0 / 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  }
+
+  &-dialog {
+    background: var(--bcd-white);
+    border-radius: 2px;
+    box-shadow: 0 4px 20px rgb(0 0 0 / 0.15);
+    padding: 24px 32px;
+    min-width: 320px;
+    max-width: 550px;
+    width: 90vw;
+    text-align: center;
+  }
+
+  &-cancel {
+    margin-top: 16px;
+    padding: 8px 20px;
+    background: var(--bcd-grey);
+    border: 1px solid var(--bcd-grey-600);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--bcd-grey-900) !important;
+    transition: background 0.2s;
+
+    &:hover {
+      background: var(--bcd-grey-500);
+    }
+  }
+
+  &-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--bcd-grey-900);
+    margin: 0 0 16px;
+  }
+
+  &-bar-container {
+    background: var(--bcd-grey);
+    border-radius: 4px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  &-bar {
+    background: var(--bcd-primary);
+    height: 100%;
+    width: 0%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+
+  &-text {
+    font-size: 14px;
+    color: var(--bcd-grey-700);
+    margin: 0;
+  }
+
+  &-summary {
+    text-align: left;
+    margin: 16px 0;
+
+    &-line {
+      font-size: 14px;
+      color: var(--bcd-grey-800);
+      margin: 8px 0;
+      line-height: 1.4;
+    }
+  }
+
+  &-found-releases {
+    max-height: 50vh;
+    overflow-y: auto;
+    text-align: left;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--bcd-grey-600);
+
+    li {
+      padding: 6px 4px;
+      margin: 0;
+      border-bottom: 1px solid var(--bcd-grey-600);
+      font-size: 13px;
+      line-height: 1.4;
+
+      a {
+        color: var(--bcd-primary);
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  &-ok {
+    margin-top: 16px;
+    padding: 8px 24px;
+    background: var(--bcd-primary) !important;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--bcd-white) !important;
+    transition: background 0.2s;
+
+    &:hover {
+      background: var(--primary-700);
+    }
+  }
+}
+
+.bcd-icon {
+  width: 12px;
+  height: 12px;
+
+  &.icon-eye,
+  &.icon-eye-off,
+  &.icon-cog {
+    width: 16px;
+    height: 16px;
+  }
+
+  &.icon-uncheck,
+  &.icon-check {
+    transform: scale(1.4);
+  }
+
+  &.icon-search,
+  &.icon-plus {
+    transform: scale(1.15);
+  }
+}
+
+.bcd-playlist-search {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  position: relative;
+
+  input {
+    padding: 8px;
+    padding-left: 28px;
+    font-size: 12px;
+    border: 1px solid var(--bcd-grey-600);
+    border-radius: 4px;
+    flex: 1;
+    outline: none;
+    width: 70%;
+
+    &::placeholder {
+      color: var(--bcd-grey-700);
+    }
+  }
+
+  .playlist-search-icon {
+    position: absolute;
+    display: block;
+    height: 13px;
+    top: 50%;
+    left: 8px;
+    transform: translateY(-50%);
+    color: var(--bcd-grey-700);
+    font-size: 14px;
+  }
+}
+
+.playlist-create-btn {
+  cursor: pointer;
+  margin-right: 0;
+  width: 32px;
+  height: 32px;
+  background-color: var(--bcd-primary);
+  color: var(--bcd-grey) !important;
+  border-radius: 4px;
+  border: none;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.inactive {
+    background-color: var(--bcd-grey-600);
+    color: var(--bcd-grey-800) !important;
+    cursor: not-allowed;
+  }
+}
+
+.bcd-fetch-watched-artists-btn {
+  @extend %bcd-btn-sm;
+
+  gap: 6px;
+  margin-bottom: 12px;
+  margin-left: 10px;
+}
+
+#bcd-open-popup-button {
+  @extend %bcd-btn-sm;
+
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.bcd-upcoming-releases-table {
+  th,
+  td {
+    padding: 8px 48px 8px 0;
+    text-align: left;
+    vertical-align: top;
+  }
+}
+
+.bcd-last-scan {
+  margin-left: 12px;
+  font-size: 12px;
+}

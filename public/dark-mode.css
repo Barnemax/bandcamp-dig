@@ -1,0 +1,303 @@
+html {
+  --bcd-dm-bg: #282828;
+  --bcd-dm-bg-lighter: #3a3a3a;
+  --bcd-dm-bg-bright: #6e6e6e;
+  --bcd-dm-text: #ddd;
+  --bcd-dm-link: #0b99c1;
+  --page-background-color: var(--bcd-dm-bg) !important;
+  --page-text-color: var(--bcd-dm-text) !important;
+}
+
+a,
+.pseudoLink,
+button {
+  color: var(--bcd-dm-link);
+}
+
+#pgBd,
+#grid-tabs-sticky.fixed,
+#recommendations_container,
+.primaryText,
+#discography a.primaryText,
+#trackInfo a.title_link,
+.label-welcome .buttons a.existing,
+.story-footer,
+.imageviewer_back,
+.menu-bar-wrapper,
+.why-edit-box textarea,
+.collection-item-fav-track .fav-track,
+body,
+.carousel-player-inner,
+#stories-vm #show-new-stories,
+.pager .pagenum,
+.pager .nextprev,
+.searchbox,
+#show-new-stories-floater button,
+.ui-dialog-content.ui-widget-content,
+.follow-unfollow,
+.follow-unfollow-inactive,
+.ui-widget-content.ui-corner-all,
+body:not(.tralbum-page) #propOpenWrapper,
+.ui-dialog.nu-dialog .ui-dialog-titlebar,
+
+/* BUYING TUNNEL */
+.checkout-vm .content,
+.checkout-order-vm .group,
+.order-recap ul li,
+
+/* GIFT CARD */
+.gift-form input[type="text"],
+.gift-form textarea,
+
+/* Purchases */
+.purchases-item {
+  background-color: var(--bcd-dm-bg) !important;
+  color: var(--bcd-dm-text) !important;
+}
+
+.spinny-overlay {
+  background-color: var(--bcd-dm-bg) !important;
+  opacity: 0.8 !important;
+}
+
+/* Overriding image bg */
+
+.download-bottom-area,
+.ui-widget-content {
+  background: var(--bcd-dm-bg) !important;
+}
+
+body.tralbum-page #propOpenWrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bcd-dm-bg) !important;
+  opacity: .95;
+  z-index: -1;
+  pointer-events: none;
+}
+
+
+.follow-fan {
+  background: var(--bcd-dm-bg) !important;
+  color: var(--bcd-dm-text) !important;
+  border-color: var(--bcd-dm-link) !important;
+}
+
+.fan-banner.empty.owner,
+#stories-vm .story-innards,
+.fan-container .top.editing,
+.carousel-player .progress-bar,
+#band-navbar,
+.display-price,
+.textInput {
+  background-color: var(--bcd-dm-bg-lighter) !important;
+}
+
+/* Collection */
+
+.fan-bio,
+.grids ol.tabs li.active,
+.grids ol.tabs li.active:hover,
+.item-link,
+.collection-item-fav-track .fav-track-link,
+.collection-item-why,
+.recommendations-container p.section-title,
+.recommendations-container .title-and-artist a,
+.recommendations-container .recommended-story a,
+.recommendations-container .bcw-blurb,
+.recommendations-container .linked-blurb,
+.recommendations-container .recommended-album,
+.recommendations-container .recommended-album p,
+.search-box,
+
+/* Feed */
+p #stories-vm .story-innards .story-body,
+#stories-vm .story-body .fav-track-title,
+#stories-vm .story-title .fan-name,
+#stories-vm .story-title .artist-name,
+#stories-vm .story-title .item-name,
+.content h2,
+.followeer .fan-username,
+.followeer .genre-name,
+.hidden-items-header,
+.grids,
+
+/* Search */
+.result-info,
+#search-filters .filter-link--active,
+.block,
+
+/* BUY */
+.buy-dlg,
+.buy-dlg .price .secondary .symbol,
+.ui-dialog .ui-widget-header,
+.ui-dialog.nu-dialog .ui-dialog-title,
+.display-price,
+.textInput,
+.thank-you .payment-email strong,
+.download-info .payment-email strong,
+
+/* GIFT CARD */
+.gift-title,
+.balance-title,
+.redeem .gift-form label,
+
+/* Settings */
+.pane,
+.pane h2 {
+  color: var(--bcd-dm-text) !important;
+}
+
+.why-edit-box textarea {
+  box-shadow: none;
+}
+
+.grids .just-hint.round4 {
+  color: var(--bcd-dm-bg) !important;
+}
+
+#dash-container h2 {
+  color: var(--bcd-dm-link) !important;
+}
+
+.inline_player .prevbutton,
+.inline_player .nextbutton,
+.carousel-player .transport .icon {
+  background-image: url('https://s4.bcbits.com/img/nextprevinvert.png');
+}
+
+.vol-icon,
+.carousel-player .vol-control,
+.carousel-player .vol-amt,
+.carousel-player .progress {
+  filter: brightness(1000%);
+}
+
+.carousel-player .queue-icon,
+.carousel-player .vol-icon {
+  fill: var(--bcd-dm-text) !important;
+}
+
+.carousel-player .playpause .pause {
+  border-color: var(--bcd-dm-text) !important;
+}
+
+a.custom-color,
+.custom-link-color,
+#trackInfo a:not(.notSkinnable),
+#trackInfo .buy-link,
+#tagArea a,
+#rightColumn a,
+#name-section a,
+#indexpage a,
+.editable-grid a,
+.featured-grid a,
+#band-navbar a,
+#live-ticket-item a.themeable,
+#live-ticket-item .buy-link,
+#live-ticket-item .more-merch a,
+#merch-item p a,
+#merch-item .buy a,
+#merch-item .more-merch a,
+.play-limits-dialog>h2,
+.play-limits-dialog-bullets li span,
+button.order_package_link.buy-link,
+h4.ft.compound-button.send-as-gift,
+.share-collect-controls a,
+.share-collect-controls button:not(.bcd-playlist-manager-trigger, .playlist-create-btn),
+.follow-unfollow,
+.follow-unfollow div,
+.collected-by a,
+.subscribe a,
+.sub a,
+.video-list a,
+.sub .main a,
+.subwelcome a,
+.artists-grid-name a,
+.featured-grid-name,
+.label-welcome .buttons a.new,
+.themed .label-band-selector a.themeable,
+.tralbum-tags a,
+button.join-live-event.live-event.live-event-stream-button,
+.live-event-ticket-item a.themeable,
+.live-event-ticket-item .buy-link,
+.live-event-ticket-item .more-merch a,
+.live-event-merch-item p a,
+.live-event-merch-item .buy a,
+.live-event-merch-item .more-merch a,
+.secondaryText,
+#wishlist-visibility,
+#sidecart,
+#stories-vm .story-innards .story-body,
+.more-releases,
+.less-releases,
+.fan-bio .edit-name input,
+.fan-bio .edit-location input,
+.fan-bio .edit-website input,
+.fan-bio .edit-blurb textarea,
+#sidecart .item .price,
+.checkout-order-vm .order-total span,
+.download-titles .download-title strong,
+.download-item-stuff .title {
+  color: var(--bcd-dm-text) !important;
+}
+
+.grids ol.tabs li.active,
+.grids ol.tabs li.active:hover {
+  border-bottom-color: var(--bcd-dm-bg-bright) !important;
+}
+
+.carousel-player .playpause .play {
+  border-left-color: var(--bcd-dm-text) !important;
+}
+
+#grids .follow-unfollow,
+#grids .follow-unfollow-inactive,
+.grids .search .search-box,
+.fan-bio .edit-profile>a,
+.fan-bio input,
+.fan-bio .edit-blurb textarea,
+#wishlist-visibility,
+#sidecart,
+.more-releases,
+.less-releases,
+.follow-unfollow.following,
+.follow-unfollow.following div,
+.follow-unfollow.following:hover,
+.invertIconography .follow-unfollow.following,
+.invertIconography .follow-unfollow.following:hover {
+  background-color: var(--bcd-dm-bg-lighter) !important;
+}
+
+body:not(.corp, .header-loaded) {
+  opacity: 0 !important;
+}
+
+body:not(.corp, .header-loaded) .menu-bar-wrapper {
+  opacity: 0 !important;
+}
+
+.followeer .fan-image img,
+.collection-item-art,
+#tralbumArt img,
+.band-photo,
+.desktop-header img,
+.thumbthumb img,
+.searchresult .art img,
+.fan-banner {
+  filter: brightness(0.75);
+}
+
+.collection-grid .collection-item-art-container .banner-container {
+  z-index: 1;
+}
+
+/* Compatibility with Bandcamp Enhancement Suite */
+
+.historybox.following {
+  background: var(--bcd-dm-link) !important;
+}
