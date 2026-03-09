@@ -12,6 +12,15 @@ export default defineConfig({
       },
     ],
     host_permissions: ['*://*.bandcamp.com/*'],
+    browser_specific_settings: {
+      gecko: {
+        id: 'bandcamp-dig@barnemax',
+        data_collection_permissions: {
+          required: ['none'],
+          collected: ['none'],
+        },
+      } as object,
+    },
   },
   srcDir: 'src',
 })
