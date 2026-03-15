@@ -9,6 +9,7 @@ export const StorageKeys = {
   onboardingCache: 'local:onboardingCache',
   onboardingLock: 'local:onboardingLock',
   lastArtistScan: 'local:lastArtistScan',
+  storageRevisions: 'local:storageRevisions',
   userSettingsPlaylistFeature: 'playlist/feature',
   userSettingsNewReleaseFeature: 'release/feature',
   userSettingsProfileStatisticsFeature: 'profile/feature',
@@ -17,6 +18,12 @@ export const StorageKeys = {
 
 // Type for storage keys that use local storage (for WXT storage API)
 export type LocalStorageKey = typeof StorageKeys[keyof typeof StorageKeys] & `local:${string}`
+
+export interface StorageRevisions {
+  playlists?: number
+  watchedReleases?: number
+  watchedArtists?: number
+}
 
 export const DEFAULT_SETTINGS = {
   [StorageKeys.userSettingsPlaylistFeature]: true,

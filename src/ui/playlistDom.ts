@@ -353,6 +353,9 @@ export class PlaylistDomService {
           if (isInPlaylist) {
             delete pl.tracks[itemId]
           }
+          else {
+            pl.tracks[itemId] = this.gatherTrackInfoFn(itemId)
+          }
 
           updateTrackInPlaylistsDisplay()
         })

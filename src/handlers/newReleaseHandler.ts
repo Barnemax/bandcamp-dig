@@ -8,6 +8,7 @@ import { BaseHandler } from './baseHandler'
 
 export class NewReleaseHandler extends BaseHandler {
   public watchedReleases: Record<string, NewReleaseData> = {}
+  private loadedReleasesRevision: number = 0
   private historyOfReleasedDate: Record<number, number> = {}
   private newReleasesContainer: HTMLElement | null = null
 
@@ -26,8 +27,11 @@ export class NewReleaseHandler extends BaseHandler {
       if (this.watchedReleases[toKey(newReleaseData.itemId)]) {
         return
       }
-      this.watchedReleases[toKey(newReleaseData.itemId)] = newReleaseData
-      await this.saveWatchedReleases()
+      await this.mutateAndSaveReleases((releases) => {
+        if (!releases[toKey(newReleaseData.itemId)]) {
+          releases[toKey(newReleaseData.itemId)] = newReleaseData
+        }
+      })
     })
 
     this.onEvent(EVENTS.newReleases.loaded, async () => {
@@ -200,22 +204,33 @@ export class NewReleaseHandler extends BaseHandler {
     await this.saveToStorage(StorageKeys.watchedReleases, this.watchedReleases)
   }
 
+  private async mutateAndSaveReleases(mutate: (data: Record<string, NewReleaseData>) => void): Promise<void> {
+    const { isStale, newRevision } = await this.checkRevisionAndBump('watchedReleases', this.loadedReleasesRevision)
+    if (isStale) {
+      this.watchedReleases = await this.getWatchedReleases()
+    }
+    mutate(this.watchedReleases)
+    this.loadedReleasesRevision = newRevision
+    await this.saveWatchedReleases()
+  }
+
   public async initStorageData(): Promise<void> {
     if (this.loadingConditionsMet === false) {
       return
     }
-    this.watchedReleases = await this.getWatchedReleases()
+    const [releases, revisions] = await Promise.all([this.getWatchedReleases(), this.loadRevisions()])
+    this.watchedReleases = releases
+    this.loadedReleasesRevision = revisions.watchedReleases ?? 0
     this.dispatchEvent(EVENTS.newReleases.loaded, { watchedReleases: this.watchedReleases })
   }
 
   public async checkForReleasedInWatchedReleases(): Promise<void> {
     const now = Date.now()
-    Object.values(this.watchedReleases).forEach((release) => {
-      release.isReleased = !!(release.releaseDate && release.releaseDate <= now)
+    await this.mutateAndSaveReleases((releases) => {
+      Object.values(releases).forEach((release) => {
+        release.isReleased = !!(release.releaseDate && release.releaseDate <= now)
+      })
     })
-
-    // Save the updated watched releases
-    await this.saveWatchedReleases()
   }
 
   public async addNewReleaseToggleToAlbumPage(): Promise<void> {
@@ -257,10 +272,10 @@ export class NewReleaseHandler extends BaseHandler {
     else {
       // Update the release date in the watched releases
       if (isWatched) {
-        this.watchedReleases[toKey(albumId)].releaseDate = currentLd.datePublished ? currentReleaseDate : 0
-        this.watchedReleases[toKey(albumId)].isReleased = false
-
-        await this.saveWatchedReleases()
+        await this.mutateAndSaveReleases((releases) => {
+          releases[toKey(albumId)].releaseDate = currentLd.datePublished ? currentReleaseDate : 0
+          releases[toKey(albumId)].isReleased = false
+        })
 
         this.bandcampDomHandler.releaseChangedDateWarning(
           shareControls as HTMLElement,
@@ -280,18 +295,19 @@ export class NewReleaseHandler extends BaseHandler {
     shareControls.appendChild(button)
 
     button.addEventListener('click', async () => {
-      // Use currentBlob from BandcampDomHandler
       if (isWatched === false) {
         if (currentBlob) {
           const newReleaseData = this.buildReleaseFromLdJson(currentBlob, currentLd)
-          this.watchedReleases[toKey(newReleaseData.itemId)] = newReleaseData
+          await this.mutateAndSaveReleases((releases) => {
+            releases[toKey(newReleaseData.itemId)] = newReleaseData
+          })
         }
       }
       else {
-        delete this.watchedReleases[toKey(currentBlob?.track_id || currentBlob?.album_id || 0)]
+        await this.mutateAndSaveReleases((releases) => {
+          delete releases[toKey(currentBlob?.track_id || currentBlob?.album_id || 0)]
+        })
       }
-
-      await this.saveWatchedReleases()
 
       // Toggle local state and update button
       isWatched = !isWatched
@@ -338,25 +354,21 @@ export class NewReleaseHandler extends BaseHandler {
       artSection.appendChild(button)
 
       button.addEventListener('click', async () => {
-        // Toggle watched state
         const isCurrentlyWatched = this.watchedReleases[toKey(albumIdInt)] !== undefined
 
-        if (isCurrentlyWatched) {
-          // Remove from watched releases
-          const release = Object.values(this.watchedReleases).find(release => release.itemId === albumIdInt)
-          if (release) {
-            historyOfReleasedDate[albumIdInt] = release.releaseDate || 0
+        await this.mutateAndSaveReleases((releases) => {
+          if (isCurrentlyWatched) {
+            const release = Object.values(releases).find(r => r.itemId === albumIdInt)
+            if (release) {
+              historyOfReleasedDate[albumIdInt] = release.releaseDate || 0
+            }
+            delete releases[toKey(albumIdInt)]
           }
-
-          delete this.watchedReleases[toKey(albumIdInt)]
-        }
-        else {
-          // Add to watched releases
-          const maybeReleaseDate = historyOfReleasedDate[albumIdInt] || 0
-          this.watchedReleases[toKey(albumIdInt)] = this.buildReleaseFromDomItem(item, albumIdInt, maybeReleaseDate)
-        }
-
-        await this.saveWatchedReleases()
+          else {
+            const maybeReleaseDate = historyOfReleasedDate[albumIdInt] || 0
+            releases[toKey(albumIdInt)] = this.buildReleaseFromDomItem(item, albumIdInt, maybeReleaseDate)
+          }
+        })
 
         // Update button appearance
         this.bandcampDomHandler.updateWatchButton(button, !isCurrentlyWatched, 'mini')
