@@ -1,6 +1,7 @@
-import type { LocalStorageKey } from '../shared/storageKeys'
+import type { LocalStorageKey, StorageRevisions } from '../shared/storageKeys'
 import type { BandcampDomHandler } from './bandcampDomHandler'
 import { storage } from '#imports'
+import { StorageKeys } from '../shared/storageKeys'
 import { dispatchCustomEvent, onCustomEvent } from '../shared/utils'
 import { decodeFromLocalStorage, encodeForLocalStorage } from '../storage/storageCodec'
 
@@ -81,6 +82,30 @@ export abstract class BaseHandler {
       return false
     }
     return true
+  }
+
+  /**
+   * Load the shared storage revisions object.
+   */
+  protected async loadRevisions(): Promise<StorageRevisions> {
+    return this.loadFromStorage<StorageRevisions>(StorageKeys.storageRevisions, {})
+  }
+
+  /**
+   * Check whether a specific revision field is stale (another tab wrote since we last loaded),
+   * then atomically bump and persist the new revision.
+   * Returns isStale (caller should re-read their data if true) and the new revision timestamp.
+   */
+  protected async checkRevisionAndBump(
+    field: keyof StorageRevisions,
+    loadedRevision: number,
+  ): Promise<{ isStale: boolean, newRevision: number }> {
+    const revisions = await this.loadRevisions()
+    const isStale = (revisions[field] ?? 0) !== loadedRevision
+    const newRevision = Date.now()
+    revisions[field] = newRevision
+    await this.saveToStorage(StorageKeys.storageRevisions, revisions)
+    return { isStale, newRevision }
   }
 
   /**

@@ -1,9 +1,9 @@
 {
   "name": "bandcamp-dig",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
-  "description": "Dig better on Bandcamp.",
+  "description": "Dig better on Bandcamp. Sort items in playlists, track new releases, provide dark mode and more.",
   "scripts": {
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",

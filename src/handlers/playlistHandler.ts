@@ -1,4 +1,4 @@
-import type { DownloadItem, ItemData, ItemStatus, PlaylistAction, PlaylistData, PlaylistItemAction, TabData } from '../shared/types'
+import type { DownloadItem, ItemStatus, PlaylistAction, PlaylistData, PlaylistItemAction, TabData } from '../shared/types'
 import { FETCH_THROTTLE_MS } from '../shared/constants'
 import { EVENTS } from '../shared/events'
 import { StorageKeys } from '../shared/storageKeys'
@@ -8,6 +8,7 @@ import { BaseHandler } from './baseHandler'
 
 export class PlaylistHandler extends BaseHandler {
   public userPlaylists: PlaylistData[] = []
+  private loadedPlaylistsRevision: number = 0
 
   public hasLoadingConditions(): boolean {
     return this.bandcampDomHandler.isRelevantPage()
@@ -32,8 +33,16 @@ export class PlaylistHandler extends BaseHandler {
       else if (this.bandcampDomHandler.isDownloadPage()) {
         const downloadItems = this.bandcampDomHandler.currentBlob?.download_items as DownloadItem[] | undefined
         if (downloadItems && downloadItems.length > 0) {
-          downloadItems.forEach(item => this.updateItemStatusInPlaylists(Number(item.item_id), 'owned'))
-          await this.savePlaylists()
+          await this.mutateAndSavePlaylists((playlists) => {
+            downloadItems.forEach((item) => {
+              const itemId = Number(item.item_id)
+              playlists.forEach((playlist) => {
+                if (playlist.tracks[itemId]) {
+                  playlist.tracks[itemId].itemStatus = 'owned'
+                }
+              })
+            })
+          })
         }
       }
     })
@@ -65,7 +74,24 @@ export class PlaylistHandler extends BaseHandler {
     await this.saveToStorage(StorageKeys.playlists, this.userPlaylists)
   }
 
+  private async mutateAndSavePlaylists(mutate: (data: PlaylistData[]) => void): Promise<void> {
+    const { isStale, newRevision } = await this.checkRevisionAndBump('playlists', this.loadedPlaylistsRevision)
+    if (isStale) {
+      this.userPlaylists = await this.getUserPlaylists()
+    }
+    mutate(this.userPlaylists)
+    this.loadedPlaylistsRevision = newRevision
+    await this.savePlaylists()
+  }
+
   public async updatePlaylistTracksStatus(playlistId: number): Promise<void> {
+    // Sync with any changes from other tabs before starting the long operation
+    const { isStale, newRevision } = await this.checkRevisionAndBump('playlists', this.loadedPlaylistsRevision)
+    if (isStale) {
+      this.userPlaylists = await this.getUserPlaylists()
+    }
+    this.loadedPlaylistsRevision = newRevision
+
     // Use the fetch function from background script to get updated info about each track in the playlist
     const playlistIndex = this.userPlaylists.findIndex(
       playlist => playlist.playlistId === playlistId,
@@ -165,8 +191,13 @@ export class PlaylistHandler extends BaseHandler {
       return
     }
 
-    this.updateItemStatusInPlaylists(Number(itemId), status)
-    await this.savePlaylists()
+    await this.mutateAndSavePlaylists((playlists) => {
+      playlists.forEach((playlist) => {
+        if (playlist.tracks[Number(itemId)]) {
+          playlist.tracks[Number(itemId)].itemStatus = status
+        }
+      })
+    })
   }
 
   private extractItemId(item: HTMLElement): string | null {
@@ -261,41 +292,35 @@ export class PlaylistHandler extends BaseHandler {
     if (this.loadingConditionsMet === false) {
       return
     }
-    this.userPlaylists = await this.getUserPlaylists()
+    const [playlists, revisions] = await Promise.all([this.getUserPlaylists(), this.loadRevisions()])
+    this.userPlaylists = playlists
+    this.loadedPlaylistsRevision = revisions.playlists ?? 0
     this.dispatchEvent(EVENTS.playlists.loaded, { userPlaylists: this.userPlaylists })
   }
 
   private async updatePlaylistsData(details: PlaylistAction): Promise<void> {
-    switch (details.action) {
-      case 'create': {
-        this.userPlaylists.push(details.playlistData)
-
-        break
-      }
-      case 'update': {
-        const existingPlaylistIndex = this.userPlaylists.findIndex(
-          playlist => playlist.playlistId === details.playlistData.playlistId,
-        )
-        if (existingPlaylistIndex !== -1) {
-          this.userPlaylists[existingPlaylistIndex] = details.playlistData
+    await this.mutateAndSavePlaylists((playlists) => {
+      switch (details.action) {
+        case 'create': {
+          playlists.push(details.playlistData)
+          break
         }
-
-        break
-      }
-      case 'delete': {
-        const existingPlaylistIndex = this.userPlaylists.findIndex(
-          playlist => playlist.playlistId === details.playlistData.playlistId,
-        )
-        if (existingPlaylistIndex !== -1) {
-          this.userPlaylists.splice(existingPlaylistIndex, 1)
+        case 'update': {
+          const idx = playlists.findIndex(p => p.playlistId === details.playlistData.playlistId)
+          if (idx !== -1) {
+            playlists[idx] = details.playlistData
+          }
+          break
         }
-
-        break
+        case 'delete': {
+          const idx = playlists.findIndex(p => p.playlistId === details.playlistData.playlistId)
+          if (idx !== -1) {
+            playlists.splice(idx, 1)
+          }
+          break
+        }
       }
-    }
-
-    // Save updated playlists to storage
-    await this.savePlaylists()
+    })
   }
 
   private updatePlaylistsUI(): void {
@@ -313,42 +338,28 @@ export class PlaylistHandler extends BaseHandler {
   }
 
   private async updatePlaylistTracks(details: PlaylistItemAction): Promise<void> {
-    const action = details.action
-    let itemData: ItemData | undefined
-
-    switch (action) {
+    switch (details.action) {
       case 'add': {
-        itemData = this.bandcampDomHandler.gatherTrackInfo(details.itemId)
-
-        const playlistIndex = this.userPlaylists.findIndex(
-          playlist => playlist.playlistId === details.playlistId,
-        )
-
-        if (playlistIndex !== -1 && itemData !== undefined) {
-          if (!this.userPlaylists[playlistIndex].tracks[itemData.itemId]) {
-            this.userPlaylists[playlistIndex].tracks[itemData.itemId] = itemData
-
-            // Update the last updated timestamp
-            this.userPlaylists[playlistIndex].lastUpdated = Date.now()
-
-            await this.savePlaylists()
-          }
+        const itemData = this.bandcampDomHandler.gatherTrackInfo(details.itemId)
+        if (itemData === undefined) {
+          break
         }
-
+        await this.mutateAndSavePlaylists((playlists) => {
+          const idx = playlists.findIndex(p => p.playlistId === details.playlistId)
+          if (idx !== -1 && !playlists[idx].tracks[itemData.itemId]) {
+            playlists[idx].tracks[itemData.itemId] = itemData
+            playlists[idx].lastUpdated = Date.now()
+          }
+        })
         break
       }
       case 'remove': {
-        const playlistIndex = this.userPlaylists.findIndex(
-          playlist => playlist.playlistId === details.playlistId,
-        )
-
-        if (playlistIndex !== -1) {
-          if (this.userPlaylists[playlistIndex].tracks[details.itemId]) {
-            delete this.userPlaylists[playlistIndex].tracks[details.itemId]
-            await this.savePlaylists()
+        await this.mutateAndSavePlaylists((playlists) => {
+          const idx = playlists.findIndex(p => p.playlistId === details.playlistId)
+          if (idx !== -1) {
+            delete playlists[idx].tracks[details.itemId]
           }
-        }
-
+        })
         break
       }
     }

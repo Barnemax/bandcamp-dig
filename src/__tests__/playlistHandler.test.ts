@@ -27,6 +27,10 @@ vi.mock('../handlers/baseHandler', () => ({
     dispatchEvent(): void { }
     loadFromStorage(): any { return {} }
     saveToStorage(): Promise<void> { return Promise.resolve() }
+    loadRevisions(): Promise<object> { return Promise.resolve({}) }
+    checkRevisionAndBump(): Promise<{ isStale: boolean, newRevision: number }> {
+      return Promise.resolve({ isStale: false, newRevision: Date.now() })
+    }
   },
 }))
 

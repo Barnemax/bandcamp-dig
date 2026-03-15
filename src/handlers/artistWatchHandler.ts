@@ -11,6 +11,7 @@ import { BaseHandler } from './baseHandler'
 
 export class ArtistWatchHandler extends BaseHandler {
   public watchedArtists: Record<string, ArtistWatchData> = {}
+  private loadedArtistsRevision: number = 0
   private tabReleaseContent: Element | null = null
 
   public hasLoadingConditions(): boolean {
@@ -43,7 +44,9 @@ export class ArtistWatchHandler extends BaseHandler {
     if (this.loadingConditionsMet === false) {
       return
     }
-    this.watchedArtists = await this.getWatchedArtists()
+    const [artists, revisions] = await Promise.all([this.getWatchedArtists(), this.loadRevisions()])
+    this.watchedArtists = artists
+    this.loadedArtistsRevision = revisions.watchedArtists ?? 0
     this.dispatchEvent(EVENTS.artists.loaded, { watchedArtists: this.watchedArtists })
   }
 
@@ -59,6 +62,16 @@ export class ArtistWatchHandler extends BaseHandler {
 
   private async saveWatchedArtists(): Promise<void> {
     await this.saveToStorage(StorageKeys.watchedArtists, this.watchedArtists)
+  }
+
+  private async mutateAndSaveArtists(mutate: (data: Record<string, ArtistWatchData>) => void): Promise<void> {
+    const { isStale, newRevision } = await this.checkRevisionAndBump('watchedArtists', this.loadedArtistsRevision)
+    if (isStale) {
+      this.watchedArtists = await this.getWatchedArtists()
+    }
+    mutate(this.watchedArtists)
+    this.loadedArtistsRevision = newRevision
+    await this.saveWatchedArtists()
   }
 
   private async addFetcherButton(tabId: string): Promise<void> {
@@ -243,21 +256,22 @@ export class ArtistWatchHandler extends BaseHandler {
     const watchArtists = async (artists: ResolvedArtist[]): Promise<void> => {
       const now = Date.now()
 
-      for (const artist of artists) {
-        const key = toKey(artist.band_id)
-        if (!this.watchedArtists[key]) {
-          this.watchedArtists[key] = {
-            bandId: artist.band_id,
-            bandName: artist.resolvedName,
-            bandUrl: artist.band_url,
-            imageUrl: artist.resolvedImageUrl,
-            lastTimeChecked: now,
-            lastReleaseChecked: artist.lastReleaseId,
+      await this.mutateAndSaveArtists((watchedArtists) => {
+        for (const artist of artists) {
+          const key = toKey(artist.band_id)
+          if (!watchedArtists[key]) {
+            watchedArtists[key] = {
+              bandId: artist.band_id,
+              bandName: artist.resolvedName,
+              bandUrl: artist.band_url,
+              imageUrl: artist.resolvedImageUrl,
+              lastTimeChecked: now,
+              lastReleaseChecked: artist.lastReleaseId,
+            }
           }
         }
-      }
+      })
 
-      await this.saveWatchedArtists()
       container.remove()
       await this.addFetcherButton(tabId)
       this.addSummaryWatchedArtists()
@@ -366,7 +380,6 @@ export class ArtistWatchHandler extends BaseHandler {
         else if (this.bandcampDomHandler.isAlbumPage()) {
           const hasBuyFullDiscography = this.bandcampDomHandler.currentBlob?.show_buy_full_disco
           if (hasBuyFullDiscography) {
-            // Get the first release of buyfulldisco
             const firstReleaseDiscography = this.bandcampDomHandler.currentBlob?.buyfulldisco?.tralbums?.[0]
             lastReleaseId = firstReleaseDiscography ? `album-${firstReleaseDiscography.item_id}` : '0'
           }
@@ -379,8 +392,6 @@ export class ArtistWatchHandler extends BaseHandler {
         }
 
         const parsedUrl = parseArtistUrl(window.location.origin)
-
-        // Add label to watch list
         const artistData: ArtistWatchData = {
           bandId: formattedBandId,
           bandName: currentBlob?.band?.name || document.querySelector('#band-name-location .title')?.textContent?.trim() || '',
@@ -390,14 +401,16 @@ export class ArtistWatchHandler extends BaseHandler {
           lastReleaseChecked: lastReleaseId || '0',
         }
 
-        this.watchedArtists[toKey(formattedBandId)] = artistData
+        await this.mutateAndSaveArtists((artists) => {
+          artists[toKey(formattedBandId)] = artistData
+        })
       }
       else {
-        // Remove from watch list
-        delete this.watchedArtists[toKey(formattedBandId)]
+        await this.mutateAndSaveArtists((artists) => {
+          delete artists[toKey(formattedBandId)]
+        })
       }
 
-      await this.saveWatchedArtists()
       this.updateArtistWatchButton(button, !currentlyWatched)
     })
   }
@@ -405,11 +418,14 @@ export class ArtistWatchHandler extends BaseHandler {
   private async updateDateCheckedForWatchedArtists(bandId: number, latestReleaseId?: string): Promise<void> {
     const artistKey = toKey(bandId)
     if (this.watchedArtists[artistKey]) {
-      this.watchedArtists[artistKey].lastTimeChecked = Date.now()
-      if (latestReleaseId) {
-        this.watchedArtists[artistKey].lastReleaseChecked = latestReleaseId
-      }
-      await this.saveWatchedArtists()
+      await this.mutateAndSaveArtists((artists) => {
+        if (artists[artistKey]) {
+          artists[artistKey].lastTimeChecked = Date.now()
+          if (latestReleaseId) {
+            artists[artistKey].lastReleaseChecked = latestReleaseId
+          }
+        }
+      })
     }
   }
 
@@ -518,6 +534,13 @@ export class ArtistWatchHandler extends BaseHandler {
   }
 
   public async scanAllWatchedArtists(): Promise<void> {
+    // Sync with any changes from other tabs before starting the long operation
+    const { isStale, newRevision } = await this.checkRevisionAndBump('watchedArtists', this.loadedArtistsRevision)
+    if (isStale) {
+      this.watchedArtists = await this.getWatchedArtists()
+    }
+    this.loadedArtistsRevision = newRevision
+
     const artistIds = Object.keys(this.watchedArtists)
 
     if (artistIds.length === 0) {
