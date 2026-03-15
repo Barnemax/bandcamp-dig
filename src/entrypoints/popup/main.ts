@@ -24,7 +24,7 @@ async function initPopup(): Promise<void> {
 function showWelcomeScreen(): void {
   document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <div class="welcome-screen">
-      <a href="https://wxt.dev" target="_blank">
+      <a href="${GLOBAL.dev.github.repo}" target="_blank">
         <img src="${bcdLogo}" class="logo" alt="BCD logo" />
       </a>
       <h1>${strings.t('popup.title')}</h1>
@@ -61,7 +61,7 @@ function showMainPopup(): void {
   document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <div class="popup-container">
       <section class="header">
-        <a href="https://wxt.dev" target="_blank">
+        <a href="${GLOBAL.dev.github.repo}" target="_blank">
           <img src="${bcdLogo}" class="logo" alt="BCD logo" />
         </a>
         <h1>${strings.t('popup.title')}</h1>

@@ -6,8 +6,8 @@ export const GLOBAL = {
       report: 'https://github.com/Barnemax/bandcamp-dig/issues/new',
     },
     rateLink: {
-      firefox: 'https://addons.mozilla.org/en-US/firefox/addon/bandcamp-dig/reviews/',
-      chrome: 'https://chrome.google.com/webstore/detail/bandcamp-dig/your-extension-id/reviews', // Replace with actual extension ID
+      firefox: 'https://addons.mozilla.org/en-US/firefox/addon/bandcamp-digging/reviews/',
+      chrome: 'https://chromewebstore.google.com/detail/bandcamp-dig/loihepolkiggbhiibpkdbnfccnmcbian/reviews', // Replace with actual extension ID
     },
   },
 }

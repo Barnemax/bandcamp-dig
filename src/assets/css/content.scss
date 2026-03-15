@@ -881,3 +881,15 @@ ul.playlists-containing-track {
   margin-left: 12px;
   font-size: 12px;
 }
+
+@media (width >= 1024px) and (width <= 1232px) {
+/*   When tabs overlap with the missing purchases link, adjust the position and hide it when tabs are fixed to prevent layout issues.  */  
+
+ #grid-tabs-sticky .missing-purchases-link {
+    top: -4px !important;
+  }
+
+  #grid-tabs-sticky.fixed .missing-purchases-link {
+    display: none;
+  }
+}

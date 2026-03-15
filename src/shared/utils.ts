@@ -115,3 +115,9 @@ export function parseArtistUrl(url: string): string {
 export function isFirefox(): boolean {
   return navigator.userAgent.includes('Firefox')
 }
+
+export function isChrome(): boolean {
+  const ua = navigator.userAgent
+
+  return ua.includes('Chrome/') && !ua.includes('Edg/') && !ua.includes('OPR/') && !ua.includes('Vivaldi/')
+}

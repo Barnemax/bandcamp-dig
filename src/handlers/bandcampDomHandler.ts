@@ -3,7 +3,7 @@ import { GRID_MUTATION_DEBOUNCE_MS } from '../shared/constants'
 import { EVENTS } from '../shared/events'
 import * as pageDetection from '../shared/pageDetection'
 import { strings } from '../shared/strings'
-import { dispatchCustomEvent, formatLocalDate, isFirefox, onCustomEvent } from '../shared/utils'
+import { dispatchCustomEvent, formatLocalDate, isChrome, onCustomEvent } from '../shared/utils'
 import { icon } from '../ui/icons'
 import { PlaylistDomService } from '../ui/playlistDom'
 import { ProgressDialog } from '../ui/progressDialog'
@@ -53,7 +53,10 @@ export class BandcampDomHandler {
 
       const clickedPlay = target.closest('.track_play_auxiliary') as HTMLElement
       if (clickedPlay) {
-        const clickedItem = target.closest('.bcd-item') as HTMLElement
+        const clickedItem = target.closest('.bcd-item') as HTMLElement | null
+        if (!clickedItem) {
+          return
+        }
         const itemId = clickedItem.dataset.itemid
         if (!itemId) {
           return
@@ -109,7 +112,7 @@ export class BandcampDomHandler {
     })
 
     if (this.isOwnAccountPage()) {
-      if (!isFirefox()) {
+      if (isChrome()) {
         const popupButton = document.createElement('button')
         popupButton.id = 'bcd-open-popup-button'
         popupButton.innerHTML = `${icon('cog')} ${strings.t('popup.settingsButton')}`

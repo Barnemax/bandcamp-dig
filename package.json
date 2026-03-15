@@ -1,7 +1,7 @@
 {
   "name": "bandcamp-dig",
   "type": "module",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Dig better on Bandcamp. Sort items in playlists, track new releases, provide dark mode and more.",
   "scripts": {
