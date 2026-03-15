@@ -273,6 +273,9 @@ export class NewReleaseHandler extends BaseHandler {
       // Update the release date in the watched releases
       if (isWatched) {
         await this.mutateAndSaveReleases((releases) => {
+          if (!releases[toKey(albumId)]) {
+            return
+          }
           releases[toKey(albumId)].releaseDate = currentLd.datePublished ? currentReleaseDate : 0
           releases[toKey(albumId)].isReleased = false
         })

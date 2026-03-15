@@ -341,9 +341,6 @@ export class PlaylistHandler extends BaseHandler {
     switch (details.action) {
       case 'add': {
         const itemData = this.bandcampDomHandler.gatherTrackInfo(details.itemId)
-        if (itemData === undefined) {
-          break
-        }
         await this.mutateAndSavePlaylists((playlists) => {
           const idx = playlists.findIndex(p => p.playlistId === details.playlistId)
           if (idx !== -1 && !playlists[idx].tracks[itemData.itemId]) {
