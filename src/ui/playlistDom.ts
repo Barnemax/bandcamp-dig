@@ -281,8 +281,8 @@ export class PlaylistDomService {
       selectButton.innerHTML = togglePlaylistManagerTitle(container.style.display !== 'none')
     })
 
-    const updateTrackInPlaylistsDisplay = (): void => {
-      const playlistsWithTrack = userPlaylists.filter(pl =>
+    const updateTrackInPlaylistsDisplay = (list: PlaylistData[] = userPlaylists): void => {
+      const playlistsWithTrack = list.filter(pl =>
         pl.tracks && pl.tracks[itemId] !== undefined,
       )
 
@@ -301,8 +301,8 @@ export class PlaylistDomService {
       return isChecked ? icon('check') : icon('uncheck')
     }
 
-    const renderList = (filter: string = ''): void => {
-      const filtered = userPlaylists
+    const renderList = (filter: string = '', list: PlaylistData[] = userPlaylists): void => {
+      const filtered = list
         .filter(pl => pl.title.toLowerCase().includes(filter.toLowerCase()))
         .sort((a, b) => b.lastUpdated - a.lastUpdated)
 
@@ -391,8 +391,9 @@ export class PlaylistDomService {
 
       input.value = ''
 
-      renderList()
-      updateTrackInPlaylistsDisplay()
+      const optimisticList = [...userPlaylists, playlistData]
+      renderList('', optimisticList)
+      updateTrackInPlaylistsDisplay(optimisticList)
     }
 
     if (!container.dataset.initialized) {

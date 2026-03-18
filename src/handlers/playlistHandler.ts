@@ -52,8 +52,8 @@ export class PlaylistHandler extends BaseHandler {
       return
     }
 
-    this.onEvent<PlaylistAction>(EVENTS.playlists.update, (detail) => {
-      this.updatePlaylistsData(detail)
+    this.onEvent<PlaylistAction>(EVENTS.playlists.update, async (detail) => {
+      await this.updatePlaylistsData(detail)
       this.updatePlaylistsUI()
     })
 
