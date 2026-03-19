@@ -355,6 +355,7 @@ export class PlaylistHandler extends BaseHandler {
           const idx = playlists.findIndex(p => p.playlistId === details.playlistId)
           if (idx !== -1) {
             delete playlists[idx].tracks[details.itemId]
+            playlists[idx].lastUpdated = Date.now()
           }
         })
         break

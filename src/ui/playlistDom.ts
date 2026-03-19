@@ -356,7 +356,9 @@ export class PlaylistDomService {
           else {
             pl.tracks[itemId] = this.gatherTrackInfoFn(itemId)
           }
+          pl.lastUpdated = Date.now()
 
+          renderList(input.value)
           updateTrackInPlaylistsDisplay()
         })
       })
