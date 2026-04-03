@@ -247,7 +247,10 @@ export class NewReleaseHandler extends BaseHandler {
       return
     }
 
-    const currentReleaseDate = new Date(currentLd.datePublished ?? '').getTime()
+    const currentReleaseDate = currentLd.datePublished ? new Date(currentLd.datePublished).getTime() : 0
+    if (Number.isNaN(currentReleaseDate)) {
+      return
+    }
     const currentDate = Date.now()
 
     if (currentReleaseDate <= currentDate && isWatched === false) {

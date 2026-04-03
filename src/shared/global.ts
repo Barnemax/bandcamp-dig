@@ -7,7 +7,7 @@ export const GLOBAL = {
     },
     rateLink: {
       firefox: 'https://addons.mozilla.org/en-US/firefox/addon/bandcamp-digging/reviews/',
-      chrome: 'https://chromewebstore.google.com/detail/bandcamp-dig/loihepolkiggbhiibpkdbnfccnmcbian/reviews', // Replace with actual extension ID
+      chrome: 'https://chromewebstore.google.com/detail/bandcamp-dig/loihepolkiggbhiibpkdbnfccnmcbian/reviews',
     },
   },
 }

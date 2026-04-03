@@ -36,8 +36,12 @@ export class DarkModeHandler {
     // Inject style within menu-bar element (it's menu-bar tag, custom element)
     const menuBar = document.querySelector('menu-bar')
     if (menuBar) {
-      const style = document.createElement('style')
-      style.textContent = `
+      const target: ShadowRoot | Element = (menuBar as HTMLElement).shadowRoot ?? menuBar
+
+      if (!target.querySelector('#bcd-menubar-dark')) {
+        const style = document.createElement('style')
+        style.id = 'bcd-menubar-dark'
+        style.textContent = `
           .menu-bar {
             background-color: var(--bcd-dm-bg) !important;
 
@@ -54,15 +58,11 @@ export class DarkModeHandler {
             }
           }
         `
-      if ((menuBar as HTMLElement).shadowRoot) {
-        (menuBar as HTMLElement).shadowRoot!.appendChild(style)
-      }
-      else {
-        menuBar.appendChild(style)
+        target.appendChild(style)
       }
     }
 
-    // We enable the body wether or not there is the menu bar (404 error for example)
+    // We enable the body whether or not there is the menu bar (404 error for example)
     document.body.classList.add('header-loaded')
   }
 }

@@ -59,7 +59,12 @@ export abstract class BaseHandler {
    * Save data to storage with automatic encoding.
    */
   protected async saveToStorage<T>(storageKey: LocalStorageKey, data: T): Promise<void> {
-    await storage.setItem(storageKey, encodeForLocalStorage(data))
+    try {
+      await storage.setItem(storageKey, encodeForLocalStorage(data))
+    }
+    catch (error) {
+      console.error(`[BCD] Failed to save storage key "${storageKey}":`, error)
+    }
   }
 
   /**

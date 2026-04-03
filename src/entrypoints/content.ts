@@ -36,11 +36,14 @@ export default defineContentScript({
         userSettings = { ...DEFAULT_SETTINGS }
       }
       else {
-        // Merge stored settings with defaults, prioritizing stored values
-        userSettings = {
-          ...DEFAULT_SETTINGS,
-          ...(stored as Settings),
-        }
+        // Merge stored settings with defaults, only accepting known keys
+        const knownKeys = Object.keys(DEFAULT_SETTINGS) as Array<keyof Settings>
+        const filtered = Object.fromEntries(
+          knownKeys
+            .filter(k => k in (stored as object))
+            .map(k => [k, (stored as Settings)[k]]),
+        ) as Partial<Settings>
+        userSettings = { ...DEFAULT_SETTINGS, ...filtered }
       }
 
       const bandcampDomHandler = new BandcampDomHandler()
