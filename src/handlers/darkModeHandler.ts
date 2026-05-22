@@ -43,19 +43,20 @@ export class DarkModeHandler {
         style.id = 'bcd-menubar-dark'
         style.textContent = `
           .menu-bar {
+            --default-foreground-color: var(--bcd-dm-text) !important;
             background-color: var(--bcd-dm-bg) !important;
+          }
 
-            .g-button .icon{
-                color: var(--bcd-dm-text) !important;
-            }
+          .site-search-form input[type="search"] {
+            --input-background-color: var(--bcd-dm-bg-lighter) !important;
+          }
 
-            .bandcamp-logo {
-            --logo-fill-color: var(--bcd-dm-text) !important;
-            }
+          .site-search-form input[type="search"]::placeholder {
+            color: var(--bcd-dm-text) !important;
+          }
 
-            .icon.collection-outline-icon path {
-                fill: var(--bcd-dm-text) !important;
-            }
+          .sub-nav .g-button, .feed .g-button, .collection .g-button {
+            --g-button-primary-color: var(--bcd-dm-text) !important;
           }
         `
         target.appendChild(style)
