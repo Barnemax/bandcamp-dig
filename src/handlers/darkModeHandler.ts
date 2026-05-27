@@ -56,7 +56,7 @@ export class DarkModeHandler {
           }
 
           .sub-nav .g-button, .feed .g-button, .collection .g-button {
-            --g-button-primary-color: var(--bcd-dm-text) !important;
+            --g-button-text-color: var(--bcd-dm-text) !important;
           }
         `
         target.appendChild(style)

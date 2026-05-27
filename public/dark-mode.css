@@ -1,7 +1,7 @@
 html {
-  --bcd-dm-bg: #282828;
-  --bcd-dm-bg-lighter: #3a3a3a;
-  --bcd-dm-bg-bright: #6e6e6e;
+  --bcd-dm-bg: var(--gray700, var(--gray-700, #222));
+  --bcd-dm-bg-lighter: var(--gray600, var(--gray-600, #333));
+  --bcd-dm-bg-bright: var(--gray500, var(--gray-500, #5a5a5a));
   --bcd-dm-text: #ddd;
   --bcd-dm-link: #0b99c1;
   --page-background-color: var(--bcd-dm-bg) !important;
@@ -294,6 +294,11 @@ body:not(.corp, .header-loaded) .menu-bar-wrapper {
 
 .collection-grid .collection-item-art-container .banner-container {
   z-index: 1;
+}
+
+.show-more.g-button {
+  --g-button-primary-color: var(--bcd-dm-bg-lighter) !important;
+  --g-button-hover-color: var(--bcd-dm-bg-bright) !important;
 }
 
 /* Compatibility with Bandcamp Enhancement Suite */
