@@ -69,7 +69,8 @@ ul.playlists-containing-track {
   text-decoration: none;
   cursor: pointer;
   font: inherit;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color .15s ease, border-color .15s ease;
+  box-sizing: border-box !important;
 
   &:hover {
     background-color: var(--bcd-grey-500);
@@ -355,6 +356,8 @@ ul.playlists-containing-track {
 
 .bcd-release-watch-art {
   position: absolute;
+  width: 22px;
+  height: 22px;
   top: 20px;
   left: 20px;
   background-color: var(--bcd-white);
@@ -695,6 +698,10 @@ ul.playlists-containing-track {
     font-weight: 600;
     color: var(--bcd-grey-900);
     margin: 0 0 16px;
+  }
+
+  &-description {
+    margin-bottom: 10px;
   }
 
   &-bar-container {

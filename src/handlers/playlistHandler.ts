@@ -17,13 +17,17 @@ export class PlaylistHandler extends BaseHandler {
   protected setupEventListeners(): void {
     this.onEvent(EVENTS.playlists.loaded, async () => {
       if (this.bandcampDomHandler.isOwnAccountPage()) {
-        const tabArgs: TabData = {
-          tabId: 'playlist',
-          title: strings.t('playlist.tabTitle'),
-          count: this.userPlaylists.length,
+        // Prefer Bandcamp's own (mobile-only) playlists tab when present; otherwise add our own tab.
+        let playlistContainer = this.bandcampDomHandler.prependToNativePlaylistsTab(this.userPlaylists.length)
+        if (!playlistContainer) {
+          const tabArgs: TabData = {
+            tabId: 'bcd-playlists',
+            title: strings.t('playlist.tabTitle'),
+            count: this.userPlaylists.length,
+          }
+          playlistContainer = this.bandcampDomHandler.addTabToProfile(tabArgs)
         }
 
-        const playlistContainer = this.bandcampDomHandler.addTabToProfile(tabArgs)
         this.bandcampDomHandler.playlistInterface(this.userPlaylists, playlistContainer)
       }
       else if (this.bandcampDomHandler.isAlbumPage()) {
@@ -325,9 +329,16 @@ export class PlaylistHandler extends BaseHandler {
 
   private updatePlaylistsUI(): void {
     if (this.bandcampDomHandler.isOwnAccountPage()) {
-      const tab = document.querySelector('#grids [data-tab="playlist"] .count')
-      if (tab) {
-        tab.textContent = this.userPlaylists.length.toString()
+      const nativeCountEl = document.querySelector('li[data-tab="playlists"] .count')
+      if (nativeCountEl) {
+        const nativeCount = Number.parseInt(nativeCountEl.getAttribute('data-native-count') ?? '0', 10) || 0
+        nativeCountEl.textContent = `${nativeCount + this.userPlaylists.length}`
+      }
+      else {
+        const tab = document.querySelector('#grids [data-tab="bcd-playlists"] .count')
+        if (tab) {
+          tab.textContent = this.userPlaylists.length.toString()
+        }
       }
 
       const playlistContainer = document.querySelector('.playlist-list-container')

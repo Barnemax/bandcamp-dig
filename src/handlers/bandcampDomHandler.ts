@@ -259,6 +259,38 @@ export class BandcampDomHandler {
     return addedContainer
   }
 
+  /**
+   * Bandcamp now ships its own (mobile-only) "playlists" tab. When present, prepend
+   * our playlist container into that native grid instead of creating a separate tab.
+   * Returns null if the native grid is not found (caller should fall back to addTabToProfile).
+   */
+  prependToNativePlaylistsTab(ourCount: number): HTMLElement | null {
+    const nativeGrid = document.getElementById('playlists-grid')
+    if (!nativeGrid) {
+      return null
+    }
+
+    // Guard against double-injection if this ever runs more than once.
+    const existing = document.getElementById('bcd-playlists-container')
+    if (existing) {
+      return existing
+    }
+
+    const container = document.createElement('div')
+    container.id = 'bcd-playlists-container'
+    container.className = 'inner'
+    nativeGrid.prepend(container)
+
+    const countEl = document.querySelector('li[data-tab="playlists"] .count')
+    if (countEl) {
+      const nativeCount = Number.parseInt(countEl.textContent?.trim() ?? '0', 10) || 0
+      countEl.setAttribute('data-native-count', String(nativeCount))
+      countEl.textContent = `${nativeCount + ourCount}`
+    }
+
+    return container
+  }
+
   // --- Track list rendering (delegated) ---
 
   generateTrackListItem(data: ItemData, context: 'playlist' | 'new-releases'): HTMLElement {
