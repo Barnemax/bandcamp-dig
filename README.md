@@ -1,10 +1,16 @@
 # Bandcamp Dig
 
-A modular extension that allows you to dig better on Bandcamp. Pending stores acceptation.
+A modular extension that allows you to dig better on Bandcamp.
+
+## Install
+
+- [Chrome Web Store](https://chromewebstore.google.com/detail/bandcamp-dig/loihepolkiggbhiibpkdbnfccnmcbian)
+- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/bandcamp-digging/)
 
 ## Features
 
 This extension allows you to:
+
 - Sort any items from Bandcamp in playlists
 - Track upcoming releases from labels/artists or from individual releases
 - Monitor your profile stats (followers, views, plays)
@@ -15,7 +21,6 @@ This extension allows you to:
 
 ### Requirements
 
-- **OS:** Windows, macOS, or Linux
 - **Node.js:** v22 or later — [nodejs.org](https://nodejs.org)
 - **pnpm:** v10 or later — install with `npm install -g pnpm`
 
@@ -38,8 +43,8 @@ The output is in `.output/firefox-mv2/` (Firefox) or `.output/chrome-mv3/` (Chro
 
 ## Some other addons I enjoy
 
- - [Bandcamp Enhancement Suite](https://github.com/sabjorn/BandcampEnhancementSuite/)
- - [Bandcamp Tempo Adjust](https://github.com/azarbayejani/bandcamp-tempo-adjust)
+- [Bandcamp Enhancement Suite](https://github.com/sabjorn/BandcampEnhancementSuite/)
+- [Bandcamp Tempo Adjust](https://github.com/azarbayejani/bandcamp-tempo-adjust)
 
 ## Licence
 
