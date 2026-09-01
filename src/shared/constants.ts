@@ -22,7 +22,7 @@ export const BUTTON_RESET_DELAY_MS = 3000
 /** TTL for the onboarding artist cache (7 days in ms) */
 export const ONBOARDING_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000
 
-/** TTL for the onboarding in-progress lock (15 minutes in ms) — covers worst-case 50 artist fetches */
+/** Sized for the worst case of 50 artist fetches. */
 export const ONBOARDING_LOCK_TTL_MS = 15 * 60 * 1000
 
 /** Timeout waiting for cronTasks daily/skippedDaily event before rendering stats (ms) */

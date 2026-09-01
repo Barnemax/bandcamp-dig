@@ -16,9 +16,8 @@ export class NewReleaseHandler extends BaseHandler {
     return this.bandcampDomHandler.isOwnAccountPage() || this.bandcampDomHandler.isAlbumPage()
   }
 
-  protected setupEventListeners(): void {
-    // Allow to add release from other parts of the extension
-    // Note: Callers should pre-filter releases (e.g., artistWatchHandler.processRelease checks dates before dispatching)
+  protected override setupEventListeners(): void {
+    // Callers must pre-filter; this does not re-check release dates.
     this.onEvent<{ blob: LoosePageBlob, ldJson: ReleaseLdJson }>(EVENTS.newReleases.addRelease, async (detail) => {
       if (!detail.blob || !detail.ldJson) {
         return
@@ -65,9 +64,7 @@ export class NewReleaseHandler extends BaseHandler {
           this.dispatchEvent(EVENTS.dom.gridUpdate)
         }
 
-        // Add a table summary for future releases in the same tab
         if (upcomingWatchedReleases.length > 0) {
-          // Sort by release date ascending
           upcomingWatchedReleases.sort((a, b) => (a.releaseDate || 0) - (b.releaseDate || 0))
 
           const futureReleasesHeader = document.createElement('h3')
@@ -80,7 +77,6 @@ export class NewReleaseHandler extends BaseHandler {
           }
         }
 
-        // Dispatch event that new releases tab is loaded
         this.dispatchEvent(EVENTS.newReleases.tabLoaded, { tabId: 'new-releases' })
       }
     })
@@ -105,7 +101,6 @@ export class NewReleaseHandler extends BaseHandler {
 
     const { released: releasedWatchedReleases, upcoming: upcomingWatchedReleases } = this.splitWatchedReleases()
 
-    // Replace the released grid
     this.newReleasesContainer.querySelector('ol.collection-grid')?.remove()
     const trackGrid = document.createElement('ol')
     trackGrid.className = 'collection-grid'
@@ -119,7 +114,7 @@ export class NewReleaseHandler extends BaseHandler {
     this.newReleasesContainer.insertBefore(trackGrid, summaryEl ?? null)
     this.dispatchEvent(EVENTS.dom.gridUpdate)
 
-    // Replace the upcoming section (direct-child h3 + summary div)
+    // :scope avoids matching the h3 inside the summary table below
     this.newReleasesContainer.querySelector(':scope > h3')?.remove()
     this.newReleasesContainer.querySelector('.bcd-upcoming-releases-summary')?.remove()
     if (upcomingWatchedReleases.length > 0) {
@@ -131,7 +126,6 @@ export class NewReleaseHandler extends BaseHandler {
       this.newReleasesContainer.insertBefore(summaryTable, summaryEl ?? null)
     }
 
-    // Update tab count
     const countEl = document.querySelector('li[data-tab="new-releases"] .count')
     if (countEl) {
       countEl.textContent = String(releasedWatchedReleases.length)
@@ -243,7 +237,7 @@ export class NewReleaseHandler extends BaseHandler {
     }
 
     if (currentLd['@type'] !== 'MusicAlbum' && isWatched === false) {
-      // Not an album page, do not show the toggle
+      // Not an album page: no toggle
       return
     }
 
@@ -254,7 +248,7 @@ export class NewReleaseHandler extends BaseHandler {
     const currentDate = Date.now()
 
     if (currentReleaseDate <= currentDate && isWatched === false) {
-      // Album is already released (and we do not watch it), do not show the toggle
+      // Already released and unwatched: no toggle
       return
     }
 
@@ -263,39 +257,31 @@ export class NewReleaseHandler extends BaseHandler {
       return
     }
 
-    // Check if the release date is in the past
     const releaseDateStocked = new Date(this.watchedReleases[toKey(albumId)]?.releaseDate).getTime() || 0
-    // Compare if datePublished is different from the stocked release date
-    if (
-      releaseDateStocked === currentReleaseDate
-      || currentReleaseDate <= currentDate
-    ) {
-      // Do nothing
-    }
-    else {
-      // Update the release date in the watched releases
-      if (isWatched) {
-        await this.mutateAndSaveReleases((releases) => {
-          if (!releases[toKey(albumId)]) {
-            return
-          }
-          releases[toKey(albumId)].releaseDate = currentLd.datePublished ? currentReleaseDate : 0
-          releases[toKey(albumId)].isReleased = false
-        })
+    const dateMoved = releaseDateStocked !== currentReleaseDate
+    const stillUpcoming = currentReleaseDate > currentDate
 
-        this.bandcampDomHandler.releaseChangedDateWarning(
-          shareControls as HTMLElement,
-          releaseDateStocked > 0 ? formatLocalDate(releaseDateStocked) : 'unknown',
-          currentLd.datePublished ? formatLocalDate(currentLd.datePublished) : 'unknown',
-        )
-      }
+    if (isWatched && dateMoved && stillUpcoming) {
+      await this.mutateAndSaveReleases((releases) => {
+        const release = releases[toKey(albumId)]
+        if (!release) {
+          return
+        }
+        release.releaseDate = currentLd.datePublished ? currentReleaseDate : 0
+        release.isReleased = false
+      })
+
+      this.bandcampDomHandler.releaseChangedDateWarning(
+        shareControls as HTMLElement,
+        releaseDateStocked > 0 ? formatLocalDate(releaseDateStocked) : 'unknown',
+        currentLd.datePublished ? formatLocalDate(currentLd.datePublished) : 'unknown',
+      )
     }
 
     const button = document.createElement('button')
     button.type = 'button'
     button.className = 'bcd-add-to-release-watch'
 
-    // SVG eye icon
     this.bandcampDomHandler.updateWatchButton(button, isWatched)
 
     shareControls.appendChild(button)
@@ -315,7 +301,6 @@ export class NewReleaseHandler extends BaseHandler {
         })
       }
 
-      // Toggle local state and update button
       isWatched = !isWatched
       this.bandcampDomHandler.updateWatchButton(button, isWatched)
     })
@@ -323,7 +308,7 @@ export class NewReleaseHandler extends BaseHandler {
     const wishlistButton = document.querySelector('#collect-item')
     if (wishlistButton) {
       wishlistButton.addEventListener('click', () => {
-        // Reverse class logic for wishlist button because the dom change happens after the click
+        // Classes are read pre-mutation: Bandcamp updates them after this handler runs
         if (
           (wishlistButton.classList.contains('wishlisted') && !button.classList.contains('watched'))
           || (wishlistButton.classList.contains('wishlist') && button.classList.contains('watched'))
@@ -346,7 +331,6 @@ export class NewReleaseHandler extends BaseHandler {
       return historyOfReleasedDate
     }
 
-    // Check if the album is already watched
     const isWatched = this.watchedReleases[toKey(albumIdInt)] !== undefined
 
     const artSection = item.querySelector('.collection-item-art-container')
@@ -376,7 +360,6 @@ export class NewReleaseHandler extends BaseHandler {
           }
         })
 
-        // Update button appearance
         this.bandcampDomHandler.updateWatchButton(button, !isCurrentlyWatched, 'mini')
       })
     }

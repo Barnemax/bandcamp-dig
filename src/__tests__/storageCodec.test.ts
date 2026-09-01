@@ -99,6 +99,34 @@ describe('storageCodec', () => {
     })
   })
 
+  describe('backward compatibility with data written by pako 2', () => {
+    // Real pako 2.2.0 output. Upgrading users carry storage written by whichever pako
+    // shipped at the time, and pako 3 changed the deflate match hash (legacyHash now
+    // defaults to false), so the bytes differ between versions. Decoding must not.
+    const PAKO2_PAYLOAD = 'eJxljD0KAjEQha8SXqUwhdkVhHSCJxA7sYhmhGBcl2SsQkpP4xXscjGzLNj4qu/Nz5fhddfDZIiXwDA41HcSVV/h/LyrRf0M/vJwvATBRvFJ2sl2BkLkwDbxzkr71Jv16heCT/t562CuNiQuhIGTTD03V4Q5auqoPxEc8zhNb00eeeTmc+oPUEr5Al7EOsU='
+
+    it('decodes a payload compressed by pako 2', () => {
+      expect(decodeFromLocalStorage(PAKO2_PAYLOAD)).toEqual({
+        i123: {
+          title: 'Tëst Ålbum (ünicode)',
+          artist: 'Artist',
+          releaseDate: 1740000000000,
+          isReleased: false,
+        },
+        nested: {
+          arr: [1, 2, 3],
+          deep: { k: 'repeated repeated repeated' },
+        },
+      })
+    })
+
+    it('produces output the current codec can read back', () => {
+      const legacy = decodeFromLocalStorage(PAKO2_PAYLOAD)
+      const reEncoded = encodeForLocalStorage(legacy)
+      expect(decodeFromLocalStorage(reEncoded)).toEqual(legacy)
+    })
+  })
+
   describe('toKey', () => {
     it('should create prefixed keys', () => {
       expect(toKey(42)).toBe('i42')

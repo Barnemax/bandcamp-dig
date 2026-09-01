@@ -114,7 +114,7 @@ describe('profileStatisticsHandler', () => {
     })
   })
 
-  describe('registerDailyStats — 90-day pruning', () => {
+  describe('registerDailyStats: 90-day pruning', () => {
     let handler: ProfileStatisticsHandler
 
     beforeEach(() => {

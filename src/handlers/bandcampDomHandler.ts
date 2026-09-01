@@ -259,11 +259,7 @@ export class BandcampDomHandler {
     return addedContainer
   }
 
-  /**
-   * Bandcamp now ships its own (mobile-only) "playlists" tab. When present, prepend
-   * our playlist container into that native grid instead of creating a separate tab.
-   * Returns null if the native grid is not found (caller should fall back to addTabToProfile).
-   */
+  /** Bandcamp ships a mobile-only "playlists" tab; reuse its grid when present. */
   prependToNativePlaylistsTab(ourCount: number): HTMLElement | null {
     const nativeGrid = document.getElementById('playlists-grid')
     if (!nativeGrid) {
@@ -422,14 +418,15 @@ export class BandcampDomHandler {
       if (this.windowBandcampData?.type === 'collection') {
         const tracklists = this.windowBandcampData.data
 
+        const wishlistData = tracklists.wishlist?.[`a${itemId}`] || tracklists.wishlist?.[`t${itemId}`]
+        const collectionData = tracklists.collection?.[`a${itemId}`] || tracklists.collection?.[`t${itemId}`]
+
         let itemData: CollectionTrackItem | undefined
-        if (tracklists.wishlist && (tracklists.wishlist[`a${itemId}`] || tracklists.wishlist[`t${itemId}`])) {
-          const wishlistData = tracklists.wishlist[`a${itemId}`] || tracklists.wishlist[`t${itemId}`]
+        if (wishlistData) {
           itemData = wishlistData[0]
           itemStatus = 'wishlisted'
         }
-        else if (tracklists.collection && (tracklists.collection[`a${itemId}`] || tracklists.collection[`t${itemId}`])) {
-          const collectionData = tracklists.collection[`a${itemId}`] || tracklists.collection[`t${itemId}`]
+        else if (collectionData) {
           itemData = collectionData[0]
           itemStatus = 'owned'
         }

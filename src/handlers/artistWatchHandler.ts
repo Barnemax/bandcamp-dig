@@ -18,8 +18,7 @@ export class ArtistWatchHandler extends BaseHandler {
     return this.bandcampDomHandler.isOwnAccountPage() || this.bandcampDomHandler.isArtistPage() || this.bandcampDomHandler.isAlbumPage()
   }
 
-  protected setupEventListeners(): void {
-    // Listen for manual scan requests
+  protected override setupEventListeners(): void {
     this.onEvent(EVENTS.artists.scan, async () => {
       await this.scanAllWatchedArtists()
     })
@@ -31,9 +30,8 @@ export class ArtistWatchHandler extends BaseHandler {
       }
     })
 
-    // When new releases tab is loaded: add fetch button and watched-artist summary.
-    // This event may fire before initStorageData completes (Promise.all race),
-    // so addFetcherButton loads from storage itself if needed.
+    // May fire before initStorageData completes (Promise.all race), so
+    // addFetcherButton loads from storage itself if needed.
     this.onEvent<{ tabId: string }>(EVENTS.newReleases.tabLoaded, async (detail) => {
       await this.addFetcherButton(detail.tabId)
       this.addSummaryWatchedArtists()
@@ -91,7 +89,6 @@ export class ArtistWatchHandler extends BaseHandler {
       return
     }
 
-    // Then add classic button to fetch new releases from watched artists
     let button = this.tabReleaseContent?.querySelector<HTMLButtonElement>('.bcd-fetch-watched-artists-btn')
     if (!button) {
       const textState = {
@@ -205,14 +202,15 @@ export class ArtistWatchHandler extends BaseHandler {
           const idx = i + batchIdx
           const musicUrl = artist.band_url.replace(/\/?$/, '/music')
           const page = await fetchDocument(musicUrl)
+          const entry = resolved[idx]
           if (page) {
-            resolved[idx].resolvedName = page.querySelector('#band-name-location .title')?.textContent?.trim()
+            entry.resolvedName = page.querySelector('#band-name-location .title')?.textContent?.trim()
               ?? page.querySelector('#band-name-location h2')?.textContent?.trim()
               ?? artist.band_name
-            resolved[idx].resolvedImageUrl = page.querySelector('.artists-bio-pic .popupImage img.band-photo')?.getAttribute('src')
+            entry.resolvedImageUrl = page.querySelector('.artists-bio-pic .popupImage img.band-photo')?.getAttribute('src')
               ?? page.querySelector('.artists-bio-pic img.band-photo')?.getAttribute('src')
               ?? ''
-            resolved[idx].lastReleaseId = page.querySelector('#music-grid li:first-child')?.getAttribute('data-item-id') ?? '0'
+            entry.lastReleaseId = page.querySelector('#music-grid li:first-child')?.getAttribute('data-item-id') ?? '0'
           }
           fetched++
           setFetchProgress()
@@ -345,7 +343,7 @@ export class ArtistWatchHandler extends BaseHandler {
           this.updateDateCheckedForWatchedArtists(formattedBandId, latestReleaseId)
         }
         else {
-          // No discography data available on this page — fetch the artist page to get the latest release
+          // No discography on this page, fetch the artist page for the latest release
           fetchDocument(parseArtistUrl(window.location.origin)).then((artistPage) => {
             const latestReleaseId = artistPage
               ? artistPage.querySelector('#music-grid li:first-child')?.getAttribute('data-item-id') ?? undefined
@@ -364,7 +362,6 @@ export class ArtistWatchHandler extends BaseHandler {
     button.className = 'bcd-label-watch-toggle'
     this.updateArtistWatchButton(button, isWatched)
 
-    // Find a good place to insert the button
     const followingActionsWrapper = document.querySelector('.following-actions-wrapper')
     followingActionsWrapper?.appendChild(button)
 
@@ -514,7 +511,6 @@ export class ArtistWatchHandler extends BaseHandler {
       return { status: 'error' }
     }
 
-    // Check if release date qualifies for adding
     const currentDate = Date.now()
     const releaseDate = new Date(ldJson.datePublished).getTime()
     const isUpcoming = releaseDate > currentDate
@@ -576,7 +572,7 @@ export class ArtistWatchHandler extends BaseHandler {
         }),
       )
 
-      for (const { artistIdKey, artistData, urls, firstReleaseId } of batchResults) {
+      for (const { artistData, urls, firstReleaseId } of batchResults) {
         if (urls.length > 0) {
           const reversed = urls.reverse()
 
@@ -604,7 +600,7 @@ export class ArtistWatchHandler extends BaseHandler {
           }
 
           if (firstReleaseId) {
-            this.watchedArtists[artistIdKey].lastReleaseChecked = firstReleaseId
+            artistData.lastReleaseChecked = firstReleaseId
             await this.saveWatchedArtists()
           }
         }

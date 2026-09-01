@@ -1,16 +1,14 @@
-import pako from 'pako'
+import { deflate, inflate } from 'pako'
 
-// Store an object in localStorage (encoded via pako)
 export function encodeForLocalStorage<T>(data: T): string {
   return compress(data)
 }
 
-// Compress an object into a binary-safe string
 function compress(obj: unknown): string {
   const json = JSON.stringify(obj)
-  const compressed = pako.deflate(json)
+  const compressed = deflate(json)
 
-  // Uint8Array → Base64 (chunked to avoid call-stack limit)
+  // Chunked: spreading a large Uint8Array into fromCharCode overflows the call stack
   let base64 = ''
   const chunk = 8192
   for (let i = 0; i < compressed.length; i += chunk) {
@@ -19,25 +17,22 @@ function compress(obj: unknown): string {
   return btoa(base64)
 }
 
-// Decompress a binary-safe string back into an object
 function decompress(str: string): unknown {
   if (typeof str !== 'string') {
     return null
   }
 
-  // Base64 → Uint8Array
   const binaryString = atob(str)
   const binary = new Uint8Array(binaryString.length)
   for (let i = 0; i < binaryString.length; i++) {
     binary[i] = binaryString.charCodeAt(i)
   }
 
-  const json = pako.inflate(binary, { to: 'string' })
+  const json = inflate(binary, { toText: true })
 
   return JSON.parse(json)
 }
 
-// Load and decode an object from localStorage
 export function decodeFromLocalStorage<T>(data: string): T | null {
   if (!data) {
     return null

@@ -18,7 +18,7 @@ export class CronTasks {
     }
 
     // Get today's date in YYYY-MM-DD format
-    const today = new Date().toISOString().split('T')[0]
+    const today = new Date().toISOString().slice(0, 10)
 
     // Check if we already ran today
     const storedData = await storage.getItem<string>(StorageKeys.dailyCheck)
@@ -28,7 +28,7 @@ export class CronTasks {
         parsed = JSON.parse(storedData)
       }
       catch {
-        // Corrupted storage — treat as never ran and fall through to run the daily task
+        // Corrupted storage: treat as never ran
         console.warn('BCD: failed to parse dailyCheck storage; treating as first run')
         parsed = { lastChecked: '' }
       }

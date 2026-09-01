@@ -14,7 +14,7 @@ export class PlaylistHandler extends BaseHandler {
     return this.bandcampDomHandler.isRelevantPage()
   }
 
-  protected setupEventListeners(): void {
+  protected override setupEventListeners(): void {
     this.onEvent(EVENTS.playlists.loaded, async () => {
       if (this.bandcampDomHandler.isOwnAccountPage()) {
         // Prefer Bandcamp's own (mobile-only) playlists tab when present; otherwise add our own tab.
@@ -51,7 +51,6 @@ export class PlaylistHandler extends BaseHandler {
       }
     })
 
-    // Only add interaction listeners on pages that support it
     if (this.bandcampDomHandler.isPageWithInteraction() === false) {
       return
     }
@@ -96,18 +95,14 @@ export class PlaylistHandler extends BaseHandler {
     }
     this.loadedPlaylistsRevision = newRevision
 
-    // Use the fetch function from background script to get updated info about each track in the playlist
-    const playlistIndex = this.userPlaylists.findIndex(
+    const playlistToUpdate = this.userPlaylists.find(
       playlist => playlist.playlistId === playlistId,
     )
 
-    if (playlistIndex === -1) {
+    if (!playlistToUpdate) {
       return
     }
 
-    const playlistToUpdate = this.userPlaylists[playlistIndex]
-
-    // Make a map of index with albumUrl
     const albumUrlMap: Record<number, string> = {}
     Object.values(playlistToUpdate.tracks).forEach((track) => {
       albumUrlMap[track.itemId] = track.albumUrl
@@ -116,7 +111,6 @@ export class PlaylistHandler extends BaseHandler {
     const entries = Object.entries(albumUrlMap)
     const total = entries.length
 
-    // Show progress dialog
     this.bandcampDomHandler.showProgressDialog({
       title: strings.t('playlist.updatingPlaylist', [playlistToUpdate.title]),
       current: 0,
@@ -126,7 +120,6 @@ export class PlaylistHandler extends BaseHandler {
 
     let current = 0
     for (const [itemId, albumUrl] of entries) {
-      // Check if user cancelled
       if (this.bandcampDomHandler.isProgressCancelled()) {
         break
       }
@@ -144,11 +137,7 @@ export class PlaylistHandler extends BaseHandler {
       await new Promise(resolve => setTimeout(resolve, FETCH_THROTTLE_MS))
     }
 
-    // Hide progress dialog
     this.bandcampDomHandler.hideProgressDialog()
-
-    // Save updated playlist
-    this.userPlaylists[playlistIndex] = playlistToUpdate
     await this.savePlaylists()
   }
 
@@ -197,8 +186,9 @@ export class PlaylistHandler extends BaseHandler {
 
     await this.mutateAndSavePlaylists((playlists) => {
       playlists.forEach((playlist) => {
-        if (playlist.tracks[Number(itemId)]) {
-          playlist.tracks[Number(itemId)].itemStatus = status
+        const track = playlist.tracks[Number(itemId)]
+        if (track) {
+          track.itemStatus = status
         }
       })
     })
@@ -353,20 +343,20 @@ export class PlaylistHandler extends BaseHandler {
       case 'add': {
         const itemData = this.bandcampDomHandler.gatherTrackInfo(details.itemId)
         await this.mutateAndSavePlaylists((playlists) => {
-          const idx = playlists.findIndex(p => p.playlistId === details.playlistId)
-          if (idx !== -1 && !playlists[idx].tracks[itemData.itemId]) {
-            playlists[idx].tracks[itemData.itemId] = itemData
-            playlists[idx].lastUpdated = Date.now()
+          const playlist = playlists.find(p => p.playlistId === details.playlistId)
+          if (playlist && !playlist.tracks[itemData.itemId]) {
+            playlist.tracks[itemData.itemId] = itemData
+            playlist.lastUpdated = Date.now()
           }
         })
         break
       }
       case 'remove': {
         await this.mutateAndSavePlaylists((playlists) => {
-          const idx = playlists.findIndex(p => p.playlistId === details.playlistId)
-          if (idx !== -1) {
-            delete playlists[idx].tracks[details.itemId]
-            playlists[idx].lastUpdated = Date.now()
+          const playlist = playlists.find(p => p.playlistId === details.playlistId)
+          if (playlist) {
+            delete playlist.tracks[details.itemId]
+            playlist.lastUpdated = Date.now()
           }
         })
         break

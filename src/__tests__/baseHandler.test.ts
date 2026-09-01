@@ -3,7 +3,6 @@ import { BaseHandler } from '../handlers/baseHandler'
 import { StorageKeys } from '../shared/storageKeys'
 import { makeMockDomHandler } from './helpers'
 
-// Minimal concrete subclass — only BaseHandler logic is under test here
 class TestHandler extends BaseHandler {
   hasLoadingConditions(): boolean { return true }
   async initStorageData(): Promise<void> {}

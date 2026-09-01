@@ -12,18 +12,16 @@ export class ProfileStatisticsHandler extends BaseHandler {
     return this.bandcampDomHandler.isOwnAccountPage()
   }
 
-  protected setupEventListeners(): void {
+  protected override setupEventListeners(): void {
     this.onEvent(EVENTS.cronTasks.daily, async () => {
       await this.registerDailyStats()
 
-      // Signal that registration is complete
       if (this.dailyRegistrationResolve) {
         this.dailyRegistrationResolve()
       }
     })
 
     this.onEvent(EVENTS.cronTasks.skippedDaily, () => {
-      // Signal that we can proceed without registration
       if (this.dailyRegistrationResolve) {
         this.dailyRegistrationResolve()
       }
@@ -41,7 +39,6 @@ export class ProfileStatisticsHandler extends BaseHandler {
 
     const stats = await this.loadFromStorage<Record<string, ProfileStatistics>>(StorageKeys.userStats, {})
 
-    // If no data, initialize
     if (Object.keys(stats).length === 0) {
       this.userStats = {}
       return
@@ -49,8 +46,7 @@ export class ProfileStatisticsHandler extends BaseHandler {
 
     this.userStats = stats
 
-    // Create a promise that will be resolved by either daily or skippedDaily event.
-    // The 5 s timeout guards against the events never firing due to ordering issues.
+    // Timeout guards against neither event firing due to handler init ordering.
     let timedOut = false
     const waitForDailyCheck = new Promise<void>((resolve) => {
       this.dailyRegistrationResolve = resolve
@@ -120,12 +116,10 @@ export class ProfileStatisticsHandler extends BaseHandler {
     const keys = Object.keys(this.userStats).sort() // dates in ascending order
     const parseDate = (str: string): Date => new Date(str.replace(/^d/, ''))
 
-    // Find the cutoff date (7 days ago)
     const today = new Date()
     const cutoffDate = new Date(today)
     cutoffDate.setDate(today.getDate() - 7)
 
-    // Filter entries from the last 7 calendar days
     const recentKeys = keys.filter(key => parseDate(key) >= cutoffDate)
 
     if (recentKeys.length >= 2) {
@@ -146,12 +140,11 @@ export class ProfileStatisticsHandler extends BaseHandler {
       }
     }
 
-    // If there are no stats since that 7 days (ignoring today), register the difference between the two last recent records (the last record is today and the one previous to that one)
+    // Only today in range: fall back to comparing against the newest record before it.
     else if (recentKeys.length === 1) {
       const todayKey = recentKeys[0]
       const todayStats = this.userStats[todayKey]
 
-      // Find the most recent stats before today
       const previousKeys = keys.filter(key => parseDate(key) < parseDate(todayKey))
       if (previousKeys.length === 0) {
         return renderArgs // No previous data to compare

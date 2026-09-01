@@ -1,10 +1,6 @@
 import type { BandcampDomHandler } from '../handlers/bandcampDomHandler'
 
-/**
- * Returns a typed stub for BandcampDomHandler.
- * Used in tests that mock BaseHandler entirely — the actual arg is ignored at runtime,
- * but this avoids scattering `{} as any` casts across test files.
- */
+/** Ignored at runtime where BaseHandler is mocked; avoids `{} as any` in every test file. */
 export function makeMockDomHandler(overrides?: Partial<BandcampDomHandler>): BandcampDomHandler {
   return { ...overrides } as BandcampDomHandler
 }

@@ -57,7 +57,7 @@ export async function processImportData(raw: string): Promise<void> {
   const validEntries = (data as [string, unknown][])
     .filter(([key]) => knownKeys.has(key))
     .flatMap(([key, value]): [string, unknown][] => {
-      // userSettings is stored as a plain object — strip any unrecognised keys before writing
+      // userSettings is a plain object, not pako-encoded; strip unrecognised keys before writing
       if (key === StorageKeys.userSettings) {
         if (typeof value !== 'object' || value === null || Array.isArray(value)) {
           return []

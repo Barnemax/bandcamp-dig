@@ -9,6 +9,10 @@ lerna-debug.log*
 
 node_modules
 .output
+
+package-lock.json
+yarn.lock
+
 stats.html
 stats-*.json
 .wxt

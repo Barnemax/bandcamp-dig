@@ -62,12 +62,11 @@ export class PlaylistDomService {
     sorted.forEach((pl) => {
       const itemImg: string[] = []
 
-      for (const trackId in pl.tracks) {
+      for (const track of Object.values(pl.tracks)) {
         if (itemImg.length >= 4) {
           break
         }
 
-        const track = pl.tracks[trackId]
         if (track.imageUrl) {
           itemImg.push(track.imageUrl)
         }

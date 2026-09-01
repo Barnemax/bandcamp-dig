@@ -31,7 +31,7 @@ vi.mock('../shared/pageDetection', () => ({
   isDownloadPage: vi.fn(() => false),
 }))
 
-// Minimal document stub — only the surface area used by gatherTrackInfo on the collection path
+// Only the surface gatherTrackInfo touches on the collection path
 function stubDocument(itemId: string, elementAttrs?: Record<string, string>, containerClass?: string): void {
   const querySelector = (selector: string): object | null => {
     if (selector === `[data-itemid="${itemId}"]` && itemId) {
@@ -90,7 +90,7 @@ function makeCollectionItem(overrides?: Partial<CollectionTrackItem>): Collectio
   }
 }
 
-describe('bandcampDomHandler — gatherTrackInfo (collection path)', () => {
+describe('bandcampDomHandler: gatherTrackInfo (collection path)', () => {
   let handler: BandcampDomHandler
 
   beforeEach(() => {
@@ -124,7 +124,7 @@ describe('bandcampDomHandler — gatherTrackInfo (collection path)', () => {
     expect(result.imageUrl).toBe('https://f4.bcbits.com/img/test.jpg')
   })
 
-  it('resolves a wishlisted album — wishlist takes priority over collection', () => {
+  it('resolves a wishlisted album, wishlist taking priority over collection', () => {
     const wishlistItem = makeCollectionItem({ title: 'Wishlist Album' })
     const collectionItem = makeCollectionItem({ title: 'Collection Album' })
     handler.windowBandcampData = {
@@ -193,21 +193,21 @@ describe('bandcampDomHandler — gatherTrackInfo (collection path)', () => {
   })
 })
 
-describe('bandcampDomHandler — gatherTrackInfo (album page path)', () => {
+describe('bandcampDomHandler: gatherTrackInfo (album page path)', () => {
   let handler: BandcampDomHandler
 
   const baseLdJson: ReleaseLdJson = {
     '@type': 'MusicAlbum',
     '@id': 'https://artist.bandcamp.com/album/test',
     'name': 'My Album',
-    'byArtist': { name: 'My Artist' },
+    'byArtist': { '@type': 'MusicGroup', 'name': 'My Artist' },
     'image': 'https://img.example.com/cover.jpg',
   }
 
   beforeEach(() => {
     stubDocument('')
-    // Construct with isAlbumPage=false so the constructor doesn't reach window.addEventListener.
-    // Override the mock after construction — gatherTrackInfo reads it at call time.
+    // Construct with isAlbumPage=false so the constructor doesn't reach window.addEventListener,
+    // then flip the mock; gatherTrackInfo reads it at call time.
     handler = new BandcampDomHandler()
     vi.mocked(pageDetection.isAlbumPage).mockReturnValue(true)
     handler.currentBlob = {

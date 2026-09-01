@@ -2,8 +2,7 @@ export function dispatchCustomEvent<T>(eventName: string, detail?: T): void {
   window.dispatchEvent(new CustomEvent(eventName, { detail }))
 }
 
-// Tracks registered (eventName → handler) pairs to prevent duplicate listeners.
-// Keys are event names; values are the raw handler references passed by callers.
+// Guards against the same handler being registered twice for one event.
 const _registeredHandlers = new Map<string, Set<(detail: unknown) => void>>()
 
 export function onCustomEvent<T>(eventName: string, handler: (detail: T) => void): void {
@@ -25,12 +24,6 @@ export function onCustomEvent<T>(eventName: string, handler: (detail: T) => void
   })
 }
 
-/**
- * Formats a date according to the user's browser locale
- * @param date The date to format (Date object, ISO string, or timestamp)
- * @param options Intl.DateTimeFormatOptions to customize the output format
- * @returns Formatted date string
- */
 export function formatLocalDate(
   date: Date | string | number,
   options: Intl.DateTimeFormatOptions = {
@@ -99,12 +92,10 @@ export function safeUrl(url: string): string {
 }
 
 export function parseArtistUrl(url: string): string {
-  // Remove /music
   if (url.endsWith('/music')) {
     url = url.slice(0, -6)
   }
 
-  // Remove trailing slash
   if (url.endsWith('/')) {
     url = url.slice(0, -1)
   }

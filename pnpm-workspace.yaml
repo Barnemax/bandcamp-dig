@@ -4,6 +4,9 @@ trustPolicy: no-downgrade
 
 trustPolicyExclude:
   - chokidar@4.0.3
+  # Manual publishes by the real maintainers; diffed against the previous
+  # provenanced release and confirmed to contain only the stated changes.
+  - fastq@1.20.2
 
 ignoredBuiltDependencies:
   - '@parcel/watcher'

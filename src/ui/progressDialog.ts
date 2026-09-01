@@ -107,7 +107,7 @@ export class ProgressDialog {
     const releases = options.foundReleases ?? []
     const releasesHtml = releases.length > 0
       ? `<ul class="bcd-progress-found-releases">${
-        releases.map(r => `<li><a href="${safeUrl(r.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(r.title)} — ${escapeHtml(r.artist)}</a></li>`).join('')
+        releases.map(r => `<li><a href="${safeUrl(r.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(r.title)} ${strings.t('common.byArtist', [escapeHtml(r.artist)])}</a></li>`).join('')
       }</ul>`
       : ''
 
