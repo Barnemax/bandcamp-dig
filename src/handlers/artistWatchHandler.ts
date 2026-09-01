@@ -148,80 +148,110 @@ export class ArtistWatchHandler extends BaseHandler {
 
     const container = document.createElement('div')
     container.className = 'bcd-onboarding'
-    container.innerHTML = `
-      <h3 class="bcd-onboarding-title">${strings.t('artistWatch.onboardingTitle')}</h3>
-      <p class="bcd-onboarding-description">${strings.t('artistWatch.onboardingDescription')}</p>
-      <div class="bcd-onboarding-loading">${strings.t('artistWatch.onboardingLoading')}</div>
-    `
     this.tabReleaseContent.prepend(container)
 
-    const loadingEl = container.querySelector('.bcd-onboarding-loading')!
-    let resolved: ResolvedArtist[]
-
+    // A fresh cache costs no network, so skip straight to the picker.
     const cached = await this.loadFromStorage<OnboardingCache | null>(StorageKeys.onboardingCache, null)
     if (cached && Date.now() - cached.timestamp < ONBOARDING_CACHE_TTL_MS) {
-      resolved = cached.resolved
+      this.renderOnboardingList(container, cached.resolved, tabId)
+      return
     }
-    else {
-      const lock = await this.loadFromStorage<OnboardingLock | null>(StorageKeys.onboardingLock, null)
-      if (lock && Date.now() - lock.timestamp < ONBOARDING_LOCK_TTL_MS) {
-        loadingEl.textContent = strings.t('artistWatch.onboardingLocked')
-        return
-      }
 
-      const fanId = this.bandcampDomHandler.currentBlob?.fan_data?.fan_id
-      if (!fanId) {
-        return
-      }
+    this.renderOnboardingPrompt(container, tabId)
+  }
 
-      await this.saveToStorage<OnboardingLock>(StorageKeys.onboardingLock, { timestamp: Date.now() })
+  /**
+   * Scanning hits the collection API plus up to 50 artist pages, so it stays
+   * behind an explicit click instead of running on every profile page load.
+   */
+  private renderOnboardingPrompt(container: HTMLElement, tabId: string): void {
+    container.innerHTML = `
+      <h3 class="bcd-onboarding-title">${strings.t('artistWatch.onboardingTitle')}</h3>
+      <p class="bcd-onboarding-description">${strings.t('artistWatch.onboardingPrompt')}</p>
+      <div class="bcd-onboarding-actions">
+        <button type="button" class="bcd-onboarding-btn-scan">${icon('refresh')}${strings.t('artistWatch.onboardingScanButton')}</button>
+      </div>
+    `
 
-      const collectionCount = this.bandcampDomHandler.currentBlob?.collection_count || 0
+    const scanButton = container.querySelector<HTMLButtonElement>('.bcd-onboarding-btn-scan')!
+    scanButton.addEventListener('click', () => {
+      scanButton.disabled = true
+      void this.runOnboardingScan(container, tabId).catch((err) => {
+        console.error('[BCD] onboarding scan failed:', err)
+        scanButton.disabled = false
+      })
+    })
+  }
 
-      // Phase 1: fetch collection
-      const result = await fetchFanCollection(fanId, collectionCount)
-      if (!result || result.items.length === 0) {
-        await this.saveToStorage<OnboardingLock | null>(StorageKeys.onboardingLock, null)
-        loadingEl.textContent = strings.t('artistWatch.onboardingEmpty')
-        return
-      }
+  private async runOnboardingScan(container: HTMLElement, tabId: string): Promise<void> {
+    const actionsEl = container.querySelector('.bcd-onboarding-actions')
+    const loadingEl = document.createElement('div')
+    loadingEl.className = 'bcd-onboarding-loading'
+    loadingEl.textContent = strings.t('artistWatch.onboardingLoading')
+    actionsEl?.replaceWith(loadingEl)
 
-      const ranked = rankArtistsFromCollection(result.items).slice(0, 50)
-      resolved = ranked.map(a => ({ ...a, resolvedName: a.band_name, resolvedImageUrl: '', lastReleaseId: '0' }))
+    const lock = await this.loadFromStorage<OnboardingLock | null>(StorageKeys.onboardingLock, null)
+    if (lock && Date.now() - lock.timestamp < ONBOARDING_LOCK_TTL_MS) {
+      loadingEl.textContent = strings.t('artistWatch.onboardingLocked')
+      return
+    }
 
-      // Phase 2: fetch each artist page to resolve proper name, image, and last release
-      let fetched = 0
-      const setFetchProgress = (): void => {
-        loadingEl.textContent = strings.t('artistWatch.onboardingFetching', [String(fetched), String(ranked.length)])
-      }
-      setFetchProgress()
+    const fanId = this.bandcampDomHandler.currentBlob?.fan_data?.fan_id
+    if (!fanId) {
+      loadingEl.textContent = strings.t('artistWatch.onboardingNoFan')
+      return
+    }
 
-      for (let i = 0; i < ranked.length; i += RELEASE_FETCH_CONCURRENCY) {
-        const batch = ranked.slice(i, i + RELEASE_FETCH_CONCURRENCY)
-        await Promise.all(batch.map(async (artist, batchIdx) => {
-          const idx = i + batchIdx
-          const musicUrl = artist.band_url.replace(/\/?$/, '/music')
-          const page = await fetchDocument(musicUrl)
-          const entry = resolved[idx]
-          if (page) {
-            entry.resolvedName = page.querySelector('#band-name-location .title')?.textContent?.trim()
-              ?? page.querySelector('#band-name-location h2')?.textContent?.trim()
-              ?? artist.band_name
-            entry.resolvedImageUrl = page.querySelector('.artists-bio-pic .popupImage img.band-photo')?.getAttribute('src')
-              ?? page.querySelector('.artists-bio-pic img.band-photo')?.getAttribute('src')
-              ?? ''
-            entry.lastReleaseId = page.querySelector('#music-grid li:first-child')?.getAttribute('data-item-id') ?? '0'
-          }
-          fetched++
-          setFetchProgress()
-        }))
-      }
+    await this.saveToStorage<OnboardingLock>(StorageKeys.onboardingLock, { timestamp: Date.now() })
 
+    const collectionCount = this.bandcampDomHandler.currentBlob?.collection_count || 0
+
+    // Phase 1: fetch collection
+    const result = await fetchFanCollection(fanId, collectionCount)
+    if (!result || result.items.length === 0) {
       await this.saveToStorage<OnboardingLock | null>(StorageKeys.onboardingLock, null)
-      await this.saveToStorage(StorageKeys.onboardingCache, { timestamp: Date.now(), resolved })
+      loadingEl.textContent = strings.t('artistWatch.onboardingEmpty')
+      return
     }
 
-    // Phase 3: render list from resolved data
+    const ranked = rankArtistsFromCollection(result.items).slice(0, 50)
+    const resolved: ResolvedArtist[] = ranked.map(a => ({ ...a, resolvedName: a.band_name, resolvedImageUrl: '', lastReleaseId: '0' }))
+
+    // Phase 2: fetch each artist page to resolve proper name, image, and last release
+    let fetched = 0
+    const setFetchProgress = (): void => {
+      loadingEl.textContent = strings.t('artistWatch.onboardingFetching', [String(fetched), String(ranked.length)])
+    }
+    setFetchProgress()
+
+    for (let i = 0; i < ranked.length; i += RELEASE_FETCH_CONCURRENCY) {
+      const batch = ranked.slice(i, i + RELEASE_FETCH_CONCURRENCY)
+      await Promise.all(batch.map(async (artist, batchIdx) => {
+        const idx = i + batchIdx
+        const musicUrl = artist.band_url.replace(/\/?$/, '/music')
+        const page = await fetchDocument(musicUrl)
+        const entry = resolved[idx]
+        if (page) {
+          entry.resolvedName = page.querySelector('#band-name-location .title')?.textContent?.trim()
+            ?? page.querySelector('#band-name-location h2')?.textContent?.trim()
+            ?? artist.band_name
+          entry.resolvedImageUrl = page.querySelector('.artists-bio-pic .popupImage img.band-photo')?.getAttribute('src')
+            ?? page.querySelector('.artists-bio-pic img.band-photo')?.getAttribute('src')
+            ?? ''
+          entry.lastReleaseId = page.querySelector('#music-grid li:first-child')?.getAttribute('data-item-id') ?? '0'
+        }
+        fetched++
+        setFetchProgress()
+      }))
+    }
+
+    await this.saveToStorage<OnboardingLock | null>(StorageKeys.onboardingLock, null)
+    await this.saveToStorage(StorageKeys.onboardingCache, { timestamp: Date.now(), resolved })
+
+    this.renderOnboardingList(container, resolved, tabId)
+  }
+
+  private renderOnboardingList(container: HTMLElement, resolved: ResolvedArtist[], tabId: string): void {
     const listHtml = resolved.map((artist, i) => `
       <li class="bcd-onboarding-item">
         <label>
