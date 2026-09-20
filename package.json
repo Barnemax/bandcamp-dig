@@ -21,14 +21,14 @@
     "test:run": "vitest run"
   },
   "dependencies": {
-    "pako": "^3.0.1"
+    "pako": "^3.0.2"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^6.7.3",
     "@barnemax/bandcamp-types": "^0.1.5",
     "eslint": "^9.39.5",
-    "sass": "^1.103.1",
-    "stylelint": "^17.14.1",
+    "sass": "^1.104.1",
+    "stylelint": "^17.15.0",
     "stylelint-config-recommended-scss": "^17.0.1",
     "stylelint-config-standard-scss": "^17.0.0",
     "typescript": "^5.9.3",
