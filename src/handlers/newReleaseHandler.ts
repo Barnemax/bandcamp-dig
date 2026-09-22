@@ -229,15 +229,20 @@ export class NewReleaseHandler extends BaseHandler {
 
   public async addNewReleaseToggleToAlbumPage(): Promise<void> {
     const currentBlob = this.bandcampDomHandler.currentBlob
-    const albumId = currentBlob?.album_id || 0
-    let isWatched = this.watchedReleases[toKey(albumId)] !== undefined
+    const itemId = currentBlob?.album_id || currentBlob?.track_id || 0
+    let isWatched = this.watchedReleases[toKey(itemId)] !== undefined
     const currentLd = this.bandcampDomHandler.getCurrentApplicationLdJson()
     if (!currentLd) {
       return
     }
 
-    if (currentLd['@type'] !== 'MusicAlbum' && isWatched === false) {
-      // Not an album page: no toggle
+    const isStandaloneTrack = currentLd['@type'] === 'MusicRecording' && !currentBlob?.album_id
+    if (
+      currentLd['@type'] !== 'MusicAlbum'
+      && !isStandaloneTrack
+      && isWatched === false
+    ) {
+      // Not an album or standalone track: no toggle
       return
     }
 
@@ -257,13 +262,17 @@ export class NewReleaseHandler extends BaseHandler {
       return
     }
 
-    const releaseDateStocked = new Date(this.watchedReleases[toKey(albumId)]?.releaseDate).getTime() || 0
+    const releaseDateStocked = new Date(this.watchedReleases[toKey(itemId)]?.releaseDate).getTime() || 0
     const dateMoved = releaseDateStocked !== currentReleaseDate
     const stillUpcoming = currentReleaseDate > currentDate
 
-    if (isWatched && dateMoved && stillUpcoming) {
+    if (
+      isWatched
+      && dateMoved
+      && stillUpcoming
+    ) {
       await this.mutateAndSaveReleases((releases) => {
-        const release = releases[toKey(albumId)]
+        const release = releases[toKey(itemId)]
         if (!release) {
           return
         }
@@ -297,7 +306,7 @@ export class NewReleaseHandler extends BaseHandler {
       }
       else {
         await this.mutateAndSaveReleases((releases) => {
-          delete releases[toKey(currentBlob?.track_id || currentBlob?.album_id || 0)]
+          delete releases[toKey(itemId)]
         })
       }
 
