@@ -784,6 +784,49 @@ ul.playlists-containing-track {
   }
 }
 
+.dark-mode .bcd-progress {
+  &-overlay {
+    background: rgb(0 0 0 / 0.7);
+  }
+
+  &-dialog {
+    background: var(--bcd-dm-bg-lighter);
+    color: var(--bcd-dm-text);
+    box-shadow: 0 4px 20px rgb(0 0 0 / 0.5);
+  }
+
+  &-title,
+  &-summary-line {
+    color: var(--bcd-dm-text);
+  }
+
+  &-bar-container {
+    background: var(--bcd-dm-bg);
+  }
+
+  &-text {
+    color: var(--bcd-grey-600);
+  }
+
+  &-cancel {
+    background: var(--bcd-dm-bg);
+    border-color: var(--bcd-dm-bg-bright);
+    color: var(--bcd-dm-text) !important;
+
+    &:hover {
+      background: var(--bcd-dm-bg-bright);
+    }
+  }
+
+  &-found-releases {
+    border-top-color: var(--bcd-dm-bg-bright);
+
+    li {
+      border-bottom-color: var(--bcd-dm-bg-bright);
+    }
+  }
+}
+
 .bcd-icon {
   width: 12px;
   height: 12px;
