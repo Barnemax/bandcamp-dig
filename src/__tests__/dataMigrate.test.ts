@@ -1,5 +1,5 @@
-import { storage } from '#imports'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { storage } from '#imports'
 
 vi.mock('../shared/strings', () => ({
   strings: {
