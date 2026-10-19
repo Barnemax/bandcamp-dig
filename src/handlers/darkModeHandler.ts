@@ -41,9 +41,18 @@ export class DarkModeHandler {
       if (!target.querySelector('#bcd-menubar-dark')) {
         const style = document.createElement('style')
         style.id = 'bcd-menubar-dark'
+        // Bandcamp's :host tokens are light-only, so pop-ups (account, search results...) render white.
+        // Overriding at :host lets derived tokens (elevated backgrounds, page text) resolve to dark.
         style.textContent = `
-          .menu-bar {
+          :host {
+            --default-background-color: var(--bcd-dm-bg) !important;
             --default-foreground-color: var(--bcd-dm-text) !important;
+            --transparency-8: var(--transparency-light-8) !important;
+            --page-text-color-secondary: var(--transparency-light-72) !important;
+            --inverted-background-color: var(--bcd-dm-bg-lighter) !important;
+          }
+
+          .menu-bar {
             background-color: var(--bcd-dm-bg) !important;
           }
 
