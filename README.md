@@ -21,8 +21,8 @@ This extension allows you to:
 
 ### Requirements
 
-- **Node.js:** v22 or later ([nodejs.org](https://nodejs.org))
-- **pnpm:** v10 or later (`npm install -g pnpm`)
+- **Node.js:** v22.13 or later ([nodejs.org](https://nodejs.org))
+- **pnpm:** v10 (`npm install -g pnpm`, or `corepack enable` to use the version pinned in `package.json`)
 
 ### Steps
 

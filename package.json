@@ -3,6 +3,7 @@
   "type": "module",
   "version": "1.1.1",
   "private": true,
+  "packageManager": "pnpm@10.22.0",
   "description": "Dig better on Bandcamp. Sort items in playlists, track new releases, provide dark mode and more.",
   "scripts": {
     "dev": "wxt",
