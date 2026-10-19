@@ -15,6 +15,7 @@ export default antfu({
   },
 }, {
   files: ['src/**'],
+  ignores: ['src/__tests__/**'],
   rules: {
     'unicorn/filename-case': ['error', { case: 'camelCase' }],
   },
